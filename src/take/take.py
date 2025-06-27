@@ -2,10 +2,14 @@ from .predicates import *
 
 import argparse
 import re
+import io
+from contextlib import redirect_stdout
 import sys
 
 class MalformedLiteralError(Exception):
-    pass
+    def __init__(self, literal: str) -> None:
+        super().__init__(f"Malformed literal: {literal}")
+        self.literal = literal
 class LiteralNotFoundError(Exception):
     pass
 class MissingLineError(Exception):
@@ -31,7 +35,7 @@ class Command:
     def __init__(self, command_line : str) -> None:
         self.command_line = command_line
         self.literals : 'list[Literal]' = []
-        self.variables_dict : 'dict[str,str]' = {} # to store variable instantiations
+        self.variables_dict : 'dict[str,str|None]' = {} # to store variable instantiations
         self.parse()
     
     def parse(self) -> None:
@@ -70,7 +74,7 @@ class Command:
             # Capture unmatched text between matches
             unmatched = self.command_line[last_end:match.start()].strip(", \t\n")
             if unmatched:
-                raise MalformedLiteralError()
+                raise MalformedLiteralError(unmatched)
                 malformed.append(unmatched)
 
             name = match.group('name')
@@ -107,8 +111,10 @@ class Command:
             # raise MalformedLiteralError()
 
         variables = list(set([arg for lit in self.literals for arg in lit.args if arg[0].isupper()]))
-        self.variables_dict = {var: "" for var in variables}
-
+        self.variables_dict = {var: None for var in variables} 
+        # TODO: maybe tuple of "" and Bool. The bool is set to True if the variable is instantiated, False otherwise
+        # so I can reason on empty lines (otherwise, empty lines are "" which is the same as a variable not instantiated)
+        # or use None instead of "" for uninstantiated variables
 
         # check singleton variables (i.e., variables appearing only once in the command)
         for var in self.variables_dict:
@@ -121,16 +127,27 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description="Process a command line with logic predicates")
     parser.add_argument("-f", "--filename", required=True, type=str, help="Filename to process")
     parser.add_argument("-c", "--command", required=True, type=str, help="Command to process")
+    parser.add_argument("-so", "--suppress-output", action="store_true", help="Suppress output, only show the result of the aggregation")
+    parser.add_argument("-a", "--aggregate", action="append", choices=[
+            "count",
+            "sum",
+            "average",
+            "min",
+            "max",
+            "concat",
+            "unique",
+            "first",
+            "last"
+        ],
+        help="Aggregation function to apply to the results")
     # parser.add_argument("-v", "--verbose", action="store_true",help="Enable verbose output")
     return parser.parse_args()
 
 
-def take_main():
+def loop_process(args : 'argparse.Namespace'):
     """
-    Main function to process the command line and file.
+    Mail loop.
     """
-    args = parse_arguments()
-
     c = Command(args.command)
     # print(c.literals)
 
@@ -138,13 +155,16 @@ def take_main():
     lines = fp.read().splitlines()
     fp.close()
 
+    aggregate_lines : 'list[str]' = []
     # print(f"Processing file: {args.filename}")
     for current_line in lines:
         # apply the corresponding predicates to the line
         # print(f"Processing line: {current_line}")
         # clean up the variables dictionary
-        c.variables_dict = {var: "" for var in c.variables_dict}
+        c.variables_dict = {var: None for var in c.variables_dict}
         for command in c.literals:
+            # print(f"Processing command: {command}")
+            # print(c.variables_dict)
             # arity 1 predicates
             # if command.name in ["print", "line"]:
             #     fn = getattr(f"{command.name}", f"{command.name}")
@@ -153,12 +173,83 @@ def take_main():
             if command.name == "line":
                 res = line(current_line, command.args[0], c.variables_dict)
             elif command.name == "print":
-                res = print_line(command.args[0], c.variables_dict)
+                if not args.suppress_output:
+                    res = print_line(command.args[0], c.variables_dict)
+                if args.aggregate:
+                    with io.StringIO() as buf, redirect_stdout(buf):
+                        print_line(command.args[0], c.variables_dict)
+                        aggregate_lines.append(buf.getvalue())
+            elif command.name == "println":
+                if not args.suppress_output:
+                    res = print_line(command.args[0], c.variables_dict, with_newline=True)
+                if args.aggregate:
+                    with io.StringIO() as buf, redirect_stdout(buf):
+                        print_line(command.args[0], c.variables_dict, with_newline=True)
+                        aggregate_lines.append(buf.getvalue())
             # arity 2 predicates
             # elif command.name in ["startswith","endswith","length","lt","leq","gt"]:
             elif command.name in [k for k in PREDICATES if PREDICATES[k] == 2]:
                 fn =  globals()[command.name]
                 res = fn(command.args[0], command.args[1], c.variables_dict)
+            elif command.name in [k for k in PREDICATES if PREDICATES[k] == 3]:
+                fn =  globals()[command.name]
+                res = fn(command.args[0], command.args[1], command.args[2], c.variables_dict)
+            elif command.name in [k for k in PREDICATES if PREDICATES[k] == 4]:
+                fn =  globals()[command.name]
+                res = fn(command.args[0], command.args[1], command.args[2], command.args[3], c.variables_dict)
             
             if not res:
                 break
+    
+    # check aggregation function
+    if args.aggregate:
+        for aggregate in args.aggregate:
+            prefix = f"[{aggregate}] "
+            if len(aggregate_lines) == 0:
+                print("[Warning] No lines to aggregate")
+                return
+            
+            if aggregate == "count":
+                print(f"{prefix}{len(aggregate_lines)}")
+            elif aggregate == "sum":
+                total = sum(float(line) for line in aggregate_lines)
+                # total = sum(int(line.strip()) for line in aggregate_lines if line.strip().isdigit())
+                print(f"{prefix}{total}")
+            elif aggregate == "average":
+                total = sum(float(line) for line in aggregate_lines)
+                count = len(aggregate_lines)
+                res = total / count if count > 0 else 0
+                print(f"{prefix}{res}")
+            elif aggregate == "min":
+                res = min(float(line) for line in aggregate_lines)
+                print(f"{prefix}{res}")
+            elif aggregate == "max":
+                res = max(float(line) for line in aggregate_lines)
+                print(f"{prefix}{res}")
+            elif aggregate == "concat":
+                res = ''.join(aggregate_lines)
+                print(f"{prefix}{res}")
+            # elif aggregate == "join": # TODO: with a separator
+            #     print(', '.join(aggregate_lines))
+            elif aggregate == "unique":
+                unique_lines = set(aggregate_lines)
+                res = '\n'.join(unique_lines)
+                print(f"{prefix}{res}")
+            elif aggregate == "first":
+                res = aggregate_lines[0]
+                print(f"{prefix}{res}")
+            elif aggregate == "last":
+                res = aggregate_lines[-1]
+                print(f"{prefix}{res}")
+            else:
+                print(f"Unknown aggregation function: {aggregate}")
+
+def take_main():
+    """
+    Main function to process the command line and file.
+    """
+    args = parse_arguments()
+    loop_process(args)
+    
+    # print(c.literals)
+

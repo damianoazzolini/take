@@ -1,6 +1,9 @@
 PREDICATES = {
+    # arity 1
     "line": 1,
     "print": 1,
+    "println": 1,
+    # arity 2
     "startswith": 2,
     "endswith": 2,
     "length": 2,
@@ -8,6 +11,9 @@ PREDICATES = {
     "leq": 2,
     "gt": 2,
     "geq": 2,
+    "capitalize": 2,
+    # arity 4
+    "split_select": 4
 }
 
 
@@ -19,19 +25,31 @@ class VariableNotFoundError(Exception):
     pass
 class NotANumberError(Exception):
     pass
+class NotAnIntegerError(Exception):
+    pass
 
-def get_instantiation(s : str, instantiations : 'dict[str,str]') -> str:
+def is_instantiated(s : str, instantiations : 'dict[str,str|None]') -> bool:
+    """
+    Check if a variable is instantiated in the instantiations dictionary.
+    Returns True if the variable is instantiated, False otherwise.
+    """
+    if s in instantiations:
+        return instantiations[s] != None
+    else:
+        raise VariableNotFoundError(f"Variable {s} not found in instantiations")
+
+
+def get_instantiation(s : str, instantiations : 'dict[str,str|None]') -> str:
     """
     Get the instantiation of a variable from the instantiations dictionary.
     If the variable is not instantiated, raise an InstantiationError.
     """
-    if s in instantiations:
-        if instantiations[s] != "":
-            return instantiations[s]
-        else:
-            raise InstantiationError(f"s is not instantiated: {s}")
-    else:
-        raise VariableNotFoundError(f"Variable {s} not found in instantiations")
+    if is_instantiated(s, instantiations):
+        return instantiations[s]
+    #     else:
+    raise InstantiationError(f"s is not instantiated: {s}")
+    # else:
+    #     raise VariableNotFoundError(f"Variable {s} not found in instantiations")
     
 def is_variable(s : str) -> bool:
     """
@@ -39,21 +57,24 @@ def is_variable(s : str) -> bool:
     """
     return s[0].isupper()
 
-# def check_exists(l : str, instantiations : 'dict[str,str]'):
-#     """
-#     Check if a variable exists in the instantiations dictionary.
-#     If it does not exist, raise a VariableNotFoundError.
-#     """
-#     if l not in instantiations:
-#         raise VariableNotFoundError(f"Variable {l} not found in instantiations")
-    
+def get_integer(s : str) -> int:
+    """
+    Get the integer from a string.
+    If the string cannot be converted to an integer, raise NotANumberError.
+    """
+    try:
+        return int(s)
+    except ValueError:
+        raise NotAnIntegerError(f"Value {s} is not an integer")
+
+
 def get_number(s : str) -> 'int|float':
     """
     Get the number (int or float) from a string.
     """
     try:
-        return int(s)
-    except ValueError:
+        return get_integer(s)
+    except NotAnIntegerError:
         try:
             return float(s)
         except ValueError:
@@ -63,7 +84,7 @@ def get_number(s : str) -> 'int|float':
 #######################
 
 
-def line(current_line : str, l : str, instantiations : 'dict[str,str]') -> bool:
+def line(current_line : str, l : str, instantiations : 'dict[str,str|None]') -> bool:
     """
     Input:
     - l: a variable representing a string
@@ -73,7 +94,7 @@ def line(current_line : str, l : str, instantiations : 'dict[str,str]') -> bool:
     """
     if is_variable(l):
         # check_exists(l, instantiations)
-        if instantiations[l] != "":
+        if is_instantiated(l, instantiations):
             return current_line == instantiations[l]
         else:
             instantiations[l] = current_line
@@ -81,22 +102,20 @@ def line(current_line : str, l : str, instantiations : 'dict[str,str]') -> bool:
     
     return current_line == l
 
-def print_line(l : str, instantiations : 'dict[str,str]') -> bool:
+def print_line(l : str, instantiations : 'dict[str,str|None]', with_newline : bool = False) -> bool:
     """
     Print the value of the variable l from the instantiations dictionary.
     If l is not a variable, print it directly.
     Returns True if the variable exists and is printed, False otherwise.
     """
     if is_variable(l):
-        # check_exists(l, instantiations)
-        print(instantiations[l])
-        return True
-
-    print(l)
-    return False
+        print(instantiations[l], end="\n" if with_newline else "")
+    else:
+        print(l, end="\n" if with_newline else "")
+    return True
     
 
-def startswith(l : str, s : str, instantiations : 'dict[str,str]') -> bool:
+def startswith(l : str, s : str, instantiations : 'dict[str,str|None]') -> bool:
     """
     Input:
     - l: a variable representing a string
@@ -107,7 +126,7 @@ def startswith(l : str, s : str, instantiations : 'dict[str,str]') -> bool:
     """
     return _starts_end_with(True, l, s, instantiations)
 
-def endswith(l : str, s : str, instantiations : 'dict[str,str]') -> bool:
+def endswith(l : str, s : str, instantiations : 'dict[str,str|None]') -> bool:
     """
     Input:
     - l: a variable representing a string
@@ -118,7 +137,7 @@ def endswith(l : str, s : str, instantiations : 'dict[str,str]') -> bool:
     """
     return _starts_end_with(False, l, s, instantiations)
 
-def _starts_end_with(t : bool, l : str, s : str, instantiations : 'dict[str,str]') -> bool:
+def _starts_end_with(t : bool, l : str, s : str, instantiations : 'dict[str,str|None]') -> bool:
     """
     Wrapper. t = True for startswith, False for endswith.
     """
@@ -129,32 +148,32 @@ def _starts_end_with(t : bool, l : str, s : str, instantiations : 'dict[str,str]
     v = l
     if is_variable(l):
         # check_exists(l, instantiations)
-        v = instantiations[l]
+        v = get_instantiation(l, instantiations)
 
     return (t and v.startswith(s)) or (not t and v.endswith(s))
 
-def lt(n : str, v : str, instantiations : 'dict[str,str]') -> bool:
+def lt(n : str, v : str, instantiations : 'dict[str,str|None]') -> bool:
     """
     Check if n < v.
     """
     return lt_leq_gt_geq_wrapper("lt", n, v, instantiations)
-def leq(n : str, v : str, instantiations : 'dict[str,str]') -> bool:
+def leq(n : str, v : str, instantiations : 'dict[str,str|None]') -> bool:
     """
     Check if n =< v.
     """
     return lt_leq_gt_geq_wrapper("leq", n, v, instantiations)
-def gt(n : str, v : str, instantiations : 'dict[str,str]') -> bool:
+def gt(n : str, v : str, instantiations : 'dict[str,str|None]') -> bool:
     """
     Check if n > v.
     """
     return lt_leq_gt_geq_wrapper("gt", n, v, instantiations)
-def geq(n : str, v : str, instantiations : 'dict[str,str]') -> bool:
+def geq(n : str, v : str, instantiations : 'dict[str,str|None]') -> bool:
     """
     Check if n >= v.
     """
     return lt_leq_gt_geq_wrapper("geq", n, v, instantiations)
 
-def lt_leq_gt_geq_wrapper(t : str, n : str, v : str, instantiations : 'dict[str,str]') -> bool:
+def lt_leq_gt_geq_wrapper(t : str, n : str, v : str, instantiations : 'dict[str,str|None]') -> bool:
     """
     Check if 
     - t = lt: n < v
@@ -181,7 +200,7 @@ def lt_leq_gt_geq_wrapper(t : str, n : str, v : str, instantiations : 'dict[str,
     
     raise ValueError(f"Unknown comparison type: {t}. Expected one of 'lt', 'leq', 'gt', 'geq'.")
 
-def length(l : str, n : str, instantiations : 'dict[str,str]') -> bool:
+def length(l : str, n : str, instantiations : 'dict[str,str|None]') -> bool:
     """
     Compute the length of a string and store it in the instantiations dictionary.
     """
@@ -189,14 +208,69 @@ def length(l : str, n : str, instantiations : 'dict[str,str]') -> bool:
         l = get_instantiation(l, instantiations)
 
     if is_variable(n):
-        if instantiations[n] == "":
-            instantiations[n] = str(len(l))
-            return True
-        else:
+        if is_instantiated(n, instantiations):
             num = get_number(instantiations[n])
             return len(l) == num
+        else:
+            instantiations[n] = str(len(l))
+            return True
 
     num = get_number(n)
     return len(l) == num
 
 
+def capitalize(l: str, s: str, instantiations: 'dict[str,str|None]') -> bool:
+    """
+    Capitalize the string in l and store it in s.
+    If s is a variable, store the capitalized string in it.
+    If s is not a variable, check if it matches the capitalized string.
+    """
+    if is_variable(l):
+        l = get_instantiation(l, instantiations)
+
+    capitalized = l.capitalize()
+
+    if is_variable(s):
+        if instantiations[s] == None:
+            instantiations[s] = capitalized
+            return True
+        else:
+            return instantiations[s] == capitalized
+
+    return capitalized == s
+
+
+def split_select(l: str, v: str, p: str, l1: str, instantiations: 'dict[str,str|None]') -> bool:
+    """
+    Split the string l at each occurrence of v, then select the part at position p and store it in l1.
+    If l1 is a variable, store the selected part in it.
+    If l1 is not a variable, check if it matches the selected part.
+    """
+    if is_variable(l):
+        l = get_instantiation(l, instantiations)
+    
+    if is_variable(v):
+        v = get_instantiation(v, instantiations)
+    if v == "space":
+        v = " "
+    
+    if is_variable(p):
+        p = get_instantiation(p, instantiations)
+    
+    parts = l.split(v)
+    
+    p_number = get_integer(p)
+
+    if is_variable(l1):
+        if not is_instantiated(l1, instantiations):
+            if p_number < len(parts):
+                instantiations[l1] = parts[p_number]
+                return True
+            else:
+                return False
+        else:
+            return p_number < len(parts) and instantiations[l1] == parts[p_number]
+    
+    if p_number < len(parts):
+        return parts[p_number] == l1
+    return False

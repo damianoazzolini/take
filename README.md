@@ -1,25 +1,61 @@
+# take: process file lines with a logic-based language
 
-# each predicate working on a line takes as input a line and outputs a line,
-# so it is not possible to obtain a list of lines starting from a line (say, with split)
+The goal of this tool is to filter files lines with logic-like predicates.
 
-# Idea: multiple filtering stage, to compute, for example, aggregations, or an aggregation command
-sum, average, stddev, min, max, count, ...
+Why? For example, to quickly extract results from a log file of an experiment.
 
-`lines(L)`: unifies L with the file lines
-`startswith(L,a)`: true if L starts with the specified pattern (a)
-`endswith(L,a)`: true if L ends with the specified pattern (a)
-`length(L,N)`: true if the line is of length N
+Each predicate takes as input at least one variable/constant with a string (the considered line) and unifies a variable with the result of the operation or succeeds/fails.
+
+
+<!-- # Idea: multiple filtering stage, to compute, for example, aggregations, or an aggregation command
+sum, average, stddev, min, max, count, ... -->
 
 <!-- `split(L,",",L1)`: splits the lines L according to the delimiter , and unifies with L1 the remaining lines.  -->
 <!-- In addition, each line in L1 is associated with an integer used to denote the length of the initial line -->
 <!-- `select(L1,2,L2)`: select the second field from each split. The value stored in split also allows to keep track of the length -->
 
 
-# Available Predicates
+## Available Predicates
+`lines(L)`: unifies L with the current file line. Note: each command must have `line/1` in it.
+`startswith(L,P)`: true if `L` starts with `P`
+`endswith(L,P)`: as `startswith/2`, but checks ends of the string
+`length(L,N)`: true if `L` is of length N
+`lt(L,N)`: true if `L < N`
+`gt(L,N)`: true if `L > N`
+`leq(L,N)`: true if `L <= N`
+`geq(L,N)`: true if `L >= N`
+`capitalize(L,C)`: `C` is the capitalized version of `L`, i.e., makes the first character as upper case and the rest lower case
+`split_select(L,V,P,L1)`: splits `L` at each occurrence of `V` then `L1` contains the split at position `P`, starting from 0. Fails if `P` is larger than the number of splits
 
-`startswith(L,S)`: checks whether the string in `L` starts with with teh string `S`
+## Aggregation Functions
+You can also aggregate the results of the applications of the predicates on the file with the option `-a/--aggregate`.
+Available aggregates:
+- `count`: count the lines
+- `sum`
+- `average`
+- `min`
+- `max`
+- `concat`: concatenates the lines
+- `unique`: filter unique lines
+- `first`
+- `last`
 
-<!-- maybe split and select only in one step? -->
+If you want only the result of the aggregation and suppress the other output, you can use the flag `-so/--suppress-output`.
+
+You can specify multiple aggregates by repeating the flag.
+
+## Examples
+
+Assume the file is called `f.txt`.
+
+Count the empty lines from a file: `take -f f.txt -c "line(L), length(L,N), lt(N,1), println(L)" -a count -so`
+
+Assuming you have a file where the line contains results separated by spaces and you want to pick the second element of each line and sum all: `take -f f.txt -c "line(L), split_select(L,space,1,L1), println(L1)" -a sum -so`
+
+<!-- 
+
+I can escape startswith by doing
+
 # i need to specify the allowed arguments directions
 for instance, the second and third arguments must be ground
 otherwise it does not work
@@ -78,4 +114,4 @@ L2 =
 
 lines(L), length(L,N), gt(N,4), startswith(L,"v"), lt(N,7), print(L)
 
-line(L), length(L,3), append(L)
+line(L), length(L,3), append(L) -->
