@@ -218,3 +218,16 @@ def test_line_number_1():
 def test_line_number_2():
     instantiations : 'dict[str,str|None]' = {"L": "a,b,c,d,e", "N": "1"}
     assert not line_number("L", "N", 2, instantiations)
+
+
+# Test cases for the `contains` predicate
+def test_contains_0():
+    instantiations : 'dict[str,str|None]' = {"L": "a,b,c,d,e", "S": "b"}
+    assert contains("L", "S", instantiations)
+def test_contains_1():
+    instantiations : 'dict[str,str|None]' = {"L": "a,b,c,d,e", "S": "f"}
+    assert not contains("L", "S", instantiations)
+def test_contains_2():
+    instantiations : 'dict[str,str|None]' = {"L": "a,b,c,d,e", "S": None}
+    with pytest.raises(InstantiationError):
+        contains("L", "S", instantiations)

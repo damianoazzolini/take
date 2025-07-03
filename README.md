@@ -16,22 +16,26 @@ sum, average, stddev, min, max, count, ... -->
 
 
 ## Available Predicates
-`lines(L)`: unifies L with the current file line. Note: each command must have `line/1` in it.
-`startswith(L,P)`: true if `L` starts with `P`
-`endswith(L,P)`: as `startswith/2`, but checks ends of the string
-`length(L,N)`: true if `L` is of length N
-`lt(L,N)`: true if `L < N`
-`gt(L,N)`: true if `L > N`
-`leq(L,N)`: true if `L <= N`
-`geq(L,N)`: true if `L >= N`
-`capitalize(L,C)`: `C` is the capitalized version of `L`, i.e., makes the first character as upper case and the rest lower case
-`split_select(L,V,P,L1)`: splits `L` at each occurrence of `V` then `L1` contains the split at position `P`, starting from 0. Fails if `P` is larger than the number of splits
+- `lines(L)`: unifies L with the current file line. Note: each command must have `line/1` in it.
+- `startswith(L,P)`: true if `L` starts with `P`
+- `endswith(L,P)`: as `startswith/2`, but checks ends of the string
+- `length(L,N)`: true if `L` is of length N
+- `lt(L,N)`: true if `L < N`
+- `gt(L,N)`: true if `L > N`
+- `leq(L,N)`: true if `L <= N`
+- `geq(L,N)`: true if `L >= N`
+- `eq(L,N)`: true if `L == N`
+- `capitalize(L,C)`: `C` is the capitalized version of `L`, i.e., makes the first character as upper case and the rest lower case
+- `split_select(L,V,P,L1)`: splits `L` at each occurrence of `V` then `L1` contains the split at position `P`, starting from 0. Fails if `P` is larger than the number of splits
+- `replace(L,A,B,L1)`: replace the occurrences of the string `A` in L with `B` and unifies `L1` with the results.
+- `contains(L,A)`: true if the string unified with `L` contains the string unified with `A`, false otherwise
 
 ## Aggregation Functions
 You can also aggregate the results of the applications of the predicates on the file with the option `-a/--aggregate`.
 Available aggregates:
 - `count`: count the lines
 - `sum`
+- `product`
 - `average`
 - `min`
 - `max`
@@ -52,7 +56,13 @@ Count the empty lines from a file: `take -f f.txt -c "line(L), length(L,N), lt(N
 
 Assuming you have a file where the line contains results separated by spaces and you want to pick the second element of each line and sum all: `take -f f.txt -c "line(L), split_select(L,space,1,L1), println(L1)" -a sum -so`
 
+
+## To Implement
+- allow strings as arguments (requires modifying the parser) to do something like startswith(L,"A") to check whether L starts with a capital A (otherwise A is treated as a variable)
+- negation
+
 <!-- 
+Example command:  uv run take -f f.txt -c "line(L), split_select(L,space,4,L1), split_select(L,space,5,L2), print(L1),println(L2)"
 
 I can escape startswith by doing
 

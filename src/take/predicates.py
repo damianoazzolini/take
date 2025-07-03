@@ -14,6 +14,7 @@ PREDICATES = {
     "eq": 2,
     "capitalize": 2,
     "line_number": 2,
+    "contains": 2,
     # arity 4
     "split_select": 4,
     "replace": 4
@@ -310,6 +311,7 @@ def replace(l: str, old: str, new: str, l1 : str, instantiations: 'dict[str,str|
     
     return replaced == l1
 
+
 def line_number(l: str, n: str, current_idx : int, instantiations: 'dict[str,str|None]') -> bool:
     """
     Get the line number of the string l.
@@ -326,3 +328,18 @@ def line_number(l: str, n: str, current_idx : int, instantiations: 'dict[str,str
             return instantiations[n] == str(current_idx + 1)
     
     return get_integer(n) == current_idx + 1
+
+
+def contains(l: str, s: str, instantiations: 'dict[str,str|None]') -> bool:
+    """
+    Check if the string l contains the substring s.
+    If l is a variable, get its value from the instantiations dictionary.
+    If s is a variable, get its value from the instantiations dictionary.
+    """
+    if is_variable(l):
+        l = get_instantiation(l, instantiations)
+    
+    if is_variable(s):
+        s = get_instantiation(s, instantiations)
+    
+    return s in l
