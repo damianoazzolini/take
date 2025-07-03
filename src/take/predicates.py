@@ -13,6 +13,7 @@ PREDICATES = {
     "geq": 2,
     "eq": 2,
     "capitalize": 2,
+    "line_number": 2,
     # arity 4
     "split_select": 4,
     "replace": 4
@@ -308,3 +309,20 @@ def replace(l: str, old: str, new: str, l1 : str, instantiations: 'dict[str,str|
             return instantiations[l1] == replaced
     
     return replaced == l1
+
+def line_number(l: str, n: str, current_idx : int, instantiations: 'dict[str,str|None]') -> bool:
+    """
+    Get the line number of the string l.
+    The line number is 1-based and it is passed in current_idx from the main loop.
+    """
+    if is_variable(l):
+        l = get_instantiation(l, instantiations)
+    
+    if is_variable(n):
+        if not is_instantiated(n, instantiations):
+            instantiations[n] = str(current_idx + 1)
+            return True
+        else:
+            return instantiations[n] == str(current_idx + 1)
+    
+    return get_integer(n) == current_idx + 1

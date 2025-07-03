@@ -205,3 +205,16 @@ def test_replace_7():
     instantiations : 'dict[str,str|None]' = {"L": "a,b,c,d,e", "V": "w", "P": ":", "L1": "a,,c,d,e"}
     assert not replace("L", "V", "P", "L1", instantiations)
 
+
+# Test cases for the `line_number` predicate
+def test_line_number_0():
+    instantiations : 'dict[str,str|None]' = {"L": "a,b,c,d,e", "N": None}
+    result = line_number("L", "N", 0, instantiations)
+    assert result
+    assert instantiations["N"] == "1"
+def test_line_number_1():
+    instantiations : 'dict[str,str|None]' = {"L": "a,b,c,d,e", "N": "1"}
+    assert line_number("L", "N", 0, instantiations)
+def test_line_number_2():
+    instantiations : 'dict[str,str|None]' = {"L": "a,b,c,d,e", "N": "1"}
+    assert not line_number("L", "N", 2, instantiations)

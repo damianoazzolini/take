@@ -159,7 +159,7 @@ def loop_process(args : 'argparse.Namespace'):
 
     aggregate_lines : 'list[str]' = []
     # print(f"Processing file: {args.filename}")
-    for current_line in lines:
+    for idx, current_line in enumerate(lines):
         # apply the corresponding predicates to the line
         # print(f"Processing line: {current_line}")
         # clean up the variables dictionary
@@ -188,6 +188,8 @@ def loop_process(args : 'argparse.Namespace'):
                     with io.StringIO() as buf, redirect_stdout(buf):
                         print_line(command.args[0], c.variables_dict, with_newline=True)
                         aggregate_lines.append(buf.getvalue())
+            elif command.name == "line_number":
+                res = line_number(command.args[0], command.args[1], idx, c.variables_dict)
             # arity 2 predicates
             # elif command.name in ["startswith","endswith","length","lt","leq","gt"]:
             elif command.name in [k for k in PREDICATES if PREDICATES[k] == 2]:
