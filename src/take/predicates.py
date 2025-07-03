@@ -11,9 +11,11 @@ PREDICATES = {
     "leq": 2,
     "gt": 2,
     "geq": 2,
+    "eq": 2,
     "capitalize": 2,
     # arity 4
-    "split_select": 4
+    "split_select": 4,
+    "replace": 4
 }
 
 
@@ -156,24 +158,29 @@ def lt(n : str, v : str, instantiations : 'dict[str,str|None]') -> bool:
     """
     Check if n < v.
     """
-    return lt_leq_gt_geq_wrapper("lt", n, v, instantiations)
+    return lt_leq_gt_geq_eq_wrapper("lt", n, v, instantiations)
 def leq(n : str, v : str, instantiations : 'dict[str,str|None]') -> bool:
     """
     Check if n =< v.
     """
-    return lt_leq_gt_geq_wrapper("leq", n, v, instantiations)
+    return lt_leq_gt_geq_eq_wrapper("leq", n, v, instantiations)
 def gt(n : str, v : str, instantiations : 'dict[str,str|None]') -> bool:
     """
     Check if n > v.
     """
-    return lt_leq_gt_geq_wrapper("gt", n, v, instantiations)
+    return lt_leq_gt_geq_eq_wrapper("gt", n, v, instantiations)
 def geq(n : str, v : str, instantiations : 'dict[str,str|None]') -> bool:
     """
     Check if n >= v.
     """
-    return lt_leq_gt_geq_wrapper("geq", n, v, instantiations)
+    return lt_leq_gt_geq_eq_wrapper("geq", n, v, instantiations)
+def eq(n : str, v : str, instantiations : 'dict[str,str|None]') -> bool:
+    """
+    Check if n == v.
+    """
+    return lt_leq_gt_geq_eq_wrapper("eq", n, v, instantiations)
 
-def lt_leq_gt_geq_wrapper(t : str, n : str, v : str, instantiations : 'dict[str,str|None]') -> bool:
+def lt_leq_gt_geq_eq_wrapper(t : str, n : str, v : str, instantiations : 'dict[str,str|None]') -> bool:
     """
     Check if 
     - t = lt: n < v
@@ -197,8 +204,10 @@ def lt_leq_gt_geq_wrapper(t : str, n : str, v : str, instantiations : 'dict[str,
         return n_number > v_number
     elif t == "geq":
         return n_number >= v_number
+    elif t == "eq":
+        return n_number == v_number
     
-    raise ValueError(f"Unknown comparison type: {t}. Expected one of 'lt', 'leq', 'gt', 'geq'.")
+    raise ValueError(f"Unknown comparison type: {t}. Expected one of 'lt', 'leq', 'gt', 'geq', 'eq'.")
 
 def length(l : str, n : str, instantiations : 'dict[str,str|None]') -> bool:
     """
@@ -274,3 +283,28 @@ def split_select(l: str, v: str, p: str, l1: str, instantiations: 'dict[str,str|
     if p_number < len(parts):
         return parts[p_number] == l1
     return False
+
+
+def replace(l: str, old: str, new: str, l1 : str, instantiations: 'dict[str,str|None]') -> bool:
+    """
+    Replace all occurrences of old in l with new.
+    If l is a variable, replace the value in the instantiations dictionary.
+    If l is not a variable, check if it matches the replaced string.
+    """
+    if is_variable(l):
+        l = get_instantiation(l, instantiations)
+    if is_variable(old):
+        old = get_instantiation(old, instantiations)
+    if is_variable(new):
+        new = get_instantiation(new, instantiations)
+    
+    replaced = l.replace(old, new)
+
+    if is_variable(l1):
+        if not is_instantiated(l1, instantiations):
+            instantiations[l1] = replaced
+            return True
+        else:
+            return instantiations[l1] == replaced
+    
+    return replaced == l1

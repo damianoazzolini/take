@@ -3,6 +3,7 @@ from .predicates import *
 import argparse
 import re
 import io
+import math
 from contextlib import redirect_stdout
 import sys
 
@@ -43,25 +44,25 @@ class Command:
         Parse the command line and extract literals.
         """
         pattern = re.compile(r'''
-            (?P<neg>not\s+)?                      # optional negation
-            (?P<name>[a-z][a-zA-Z0-9_]*)          # predicate name
-            \(
-                (?P<args>
-                    \s*
-                    (?:
-                        [a-zA-Z][a-zA-Z0-9_]*        # uppercase identifier
-                        |
-                        \d+(?:\.\d+)?             # or number
-                    )
-                    (?:\s*,\s*
-                        (?:
-                            [a-zA-Z][a-zA-Z0-9_]*
-                            |
-                            \d+(?:\.\d+)?
-                        )
-                    )*
+            (?P<neg>not\s+)?                              # optional "not"
+            (?P<name>[a-z][a-zA-Z0-9_]*)                  # predicate name
+            \s*\(\s*
+            (?P<args>
+                (?:
+                    (?:[A-Z][a-zA-Z0-9_]*                 # variable
+                    |
+                    [a-z][a-zA-Z0-9_]*                    # constant (lowercase)
+                    |
+                    '(?:[^'\\]|\\.)*'                     # quoted constant (handles escaped quotes)
+                    |
+                    \d+(?:\.\d+)?                         # number
                 )
-            \)
+                (?:\s*,\s*
+                    (?:[A-Z][a-zA-Z0-9_]*|[a-z][a-zA-Z0-9_]*|'(?:[^'\\]|\\.)*'|\d+(?:\.\d+)?)
+                )*
+            )?
+            )
+            \s*\)
         ''', re.VERBOSE)
 
         # literals = []
@@ -131,6 +132,7 @@ def parse_arguments():
     parser.add_argument("-a", "--aggregate", action="append", choices=[
             "count",
             "sum",
+            "product",
             "average",
             "min",
             "max",
@@ -213,7 +215,9 @@ def loop_process(args : 'argparse.Namespace'):
                 print(f"{prefix}{len(aggregate_lines)}")
             elif aggregate == "sum":
                 total = sum(float(line) for line in aggregate_lines)
-                # total = sum(int(line.strip()) for line in aggregate_lines if line.strip().isdigit())
+                print(f"{prefix}{total}")
+            elif aggregate == "product":
+                total = math.prod(float(line) for line in aggregate_lines)
                 print(f"{prefix}{total}")
             elif aggregate == "average":
                 total = sum(float(line) for line in aggregate_lines)
