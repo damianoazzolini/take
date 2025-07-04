@@ -135,6 +135,7 @@ Available predicates (name and arity, i.e., number of arguments):
 - gt/2
 - leq/2
 - eq/2
+- neq/2
 - capitalize/2
 - strip/2
 - contains/2
@@ -195,8 +196,12 @@ def loop_process(args : 'argparse.Namespace'):
             #     res = fn(line, command.args[0], c.variables_dict)
             res = False
             if command.name == "line":
+                if command.is_negated:
+                    print(f"Warning: the 'line' predicate cannot be negated, ignoring the negation")
                 res = line(current_line, command.args[0], c.variables_dict)
             elif command.name == "print":
+                if command.is_negated:
+                    print(f"Warning: the 'print' predicate cannot be negated, ignoring the negation")
                 if not args.suppress_output:
                     res = print_line(command.args[0], c.variables_dict)
                 if args.aggregate:
@@ -204,6 +209,8 @@ def loop_process(args : 'argparse.Namespace'):
                         print_line(command.args[0], c.variables_dict)
                         aggregate_lines.append(buf.getvalue())
             elif command.name == "println":
+                if command.is_negated:
+                    print(f"Warning: the 'println' predicate cannot be negated, ignoring the negation")
                 if not args.suppress_output:
                     res = print_line(command.args[0], c.variables_dict, with_newline=True)
                 if args.aggregate:
@@ -211,18 +218,18 @@ def loop_process(args : 'argparse.Namespace'):
                         print_line(command.args[0], c.variables_dict, with_newline=True)
                         aggregate_lines.append(buf.getvalue())
             elif command.name == "line_number":
-                res = line_number(command.args[0], command.args[1], idx, c.variables_dict)
+                res = line_number(command.args[0], command.args[1], idx, c.variables_dict, command.is_negated)
             # arity 2 predicates
             # elif command.name in ["startswith","endswith","length","lt","leq","gt"]:
             elif command.name in [k for k in PREDICATES if PREDICATES[k] == 2]:
                 fn =  globals()[command.name]
-                res = fn(command.args[0], command.args[1], c.variables_dict)
+                res = fn(command.args[0], command.args[1], c.variables_dict, command.is_negated)
             elif command.name in [k for k in PREDICATES if PREDICATES[k] == 3]:
                 fn =  globals()[command.name]
-                res = fn(command.args[0], command.args[1], command.args[2], c.variables_dict)
+                res = fn(command.args[0], command.args[1], command.args[2], c.variables_dict, command.is_negated)
             elif command.name in [k for k in PREDICATES if PREDICATES[k] == 4]:
                 fn =  globals()[command.name]
-                res = fn(command.args[0], command.args[1], command.args[2], command.args[3], c.variables_dict)
+                res = fn(command.args[0], command.args[1], command.args[2], command.args[3], c.variables_dict, command.is_negated)
             
             if not res:
                 break

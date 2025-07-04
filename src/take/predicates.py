@@ -12,6 +12,7 @@ PREDICATES = {
     "gt": 2,
     "geq": 2,
     "eq": 2,
+    "neq": 2,
     "capitalize": 2,
     "line_number": 2,
     "contains": 2,
@@ -31,6 +32,8 @@ class VariableNotFoundError(Exception):
 class NotANumberError(Exception):
     pass
 class NotAnIntegerError(Exception):
+    pass
+class UnsafeError(Exception):
     pass
 
 def is_instantiated(s : str, instantiations : 'dict[str,str|None]') -> bool:
@@ -97,6 +100,15 @@ def get_number(s : str) -> 'int|float':
             raise NotANumberError(f"Value {s} is not a number")
 
 
+def check_safe_negation(args : 'list[str]', instantiations : 'dict[str,str|None]', pred_name : str) -> None:
+    """
+    Check if all arguments are ground (i.e., not variables) for safe negation.
+    If any argument is a variable, raise UnsafeError.
+    """
+    for arg in args:
+        if is_variable(arg) and not is_instantiated(arg, instantiations):
+            raise UnsafeError(f"Negation is not safe for variable {arg} in {pred_name}.")
+
 #######################
 
 
@@ -131,7 +143,7 @@ def print_line(l : str, instantiations : 'dict[str,str|None]', with_newline : bo
     return True
     
 
-def startswith(l : str, s : str, instantiations : 'dict[str,str|None]') -> bool:
+def startswith(l : str, s : str, instantiations : 'dict[str,str|None]', is_negated : bool) -> bool:
     """
     Input:
     - l: a variable representing a string
@@ -140,9 +152,9 @@ def startswith(l : str, s : str, instantiations : 'dict[str,str|None]') -> bool:
     Returns:
     - True if the string in l1 starts with s, False otherwise
     """
-    return _starts_end_with(True, l, s, instantiations)
+    return _starts_end_with(True, l, s, instantiations, is_negated)
 
-def endswith(l : str, s : str, instantiations : 'dict[str,str|None]') -> bool:
+def endswith(l : str, s : str, instantiations : 'dict[str,str|None]', is_negated : bool) -> bool:
     """
     Input:
     - l: a variable representing a string
@@ -151,12 +163,15 @@ def endswith(l : str, s : str, instantiations : 'dict[str,str|None]') -> bool:
     Returns:
     - True if the string in l1 ends with s, False otherwise
     """
-    return _starts_end_with(False, l, s, instantiations)
+    return _starts_end_with(False, l, s, instantiations, is_negated)
 
-def _starts_end_with(t : bool, l : str, s : str, instantiations : 'dict[str,str|None]') -> bool:
+def _starts_end_with(t : bool, l : str, s : str, instantiations : 'dict[str,str|None]', is_negated : bool) -> bool:
     """
     Wrapper. t = True for startswith, False for endswith.
     """
+    if is_negated:
+        check_safe_negation([l, s], instantiations, f"{'startswith' if t else 'endswith'}")
+    
     if is_variable(s):
         s = get_instantiation(s, instantiations)
     else:
@@ -170,42 +185,52 @@ def _starts_end_with(t : bool, l : str, s : str, instantiations : 'dict[str,str|
         l = get_constant(l)
 
     # print(f"Checking if {l} {'starts' if t else 'ends'} with {s}")
-    return (t and l.startswith(s)) or (not t and l.endswith(s))
+    return ((t and l.startswith(s)) or (not t and l.endswith(s))) ^ is_negated
 
-def lt(n : str, v : str, instantiations : 'dict[str,str|None]') -> bool:
+def lt(n : str, v : str, instantiations : 'dict[str,str|None]', is_negated : bool) -> bool:
     """
     Check if n < v.
     """
-    return lt_leq_gt_geq_eq_wrapper("lt", n, v, instantiations)
-def leq(n : str, v : str, instantiations : 'dict[str,str|None]') -> bool:
+    return lt_leq_gt_geq_eq_wrapper("lt", n, v, instantiations, is_negated)
+def leq(n : str, v : str, instantiations : 'dict[str,str|None]', is_negated : bool) -> bool:
     """
     Check if n =< v.
     """
-    return lt_leq_gt_geq_eq_wrapper("leq", n, v, instantiations)
-def gt(n : str, v : str, instantiations : 'dict[str,str|None]') -> bool:
+    return lt_leq_gt_geq_eq_wrapper("leq", n, v, instantiations, is_negated)
+def gt(n : str, v : str, instantiations : 'dict[str,str|None]', is_negated : bool) -> bool:
     """
     Check if n > v.
     """
-    return lt_leq_gt_geq_eq_wrapper("gt", n, v, instantiations)
-def geq(n : str, v : str, instantiations : 'dict[str,str|None]') -> bool:
+    return lt_leq_gt_geq_eq_wrapper("gt", n, v, instantiations, is_negated)
+def geq(n : str, v : str, instantiations : 'dict[str,str|None]', is_negated : bool) -> bool:
     """
     Check if n >= v.
     """
-    return lt_leq_gt_geq_eq_wrapper("geq", n, v, instantiations)
-def eq(n : str, v : str, instantiations : 'dict[str,str|None]') -> bool:
+    return lt_leq_gt_geq_eq_wrapper("geq", n, v, instantiations, is_negated)
+def eq(n : str, v : str, instantiations : 'dict[str,str|None]', is_negated : bool) -> bool:
     """
     Check if n == v.
     """
-    return lt_leq_gt_geq_eq_wrapper("eq", n, v, instantiations)
+    return lt_leq_gt_geq_eq_wrapper("eq", n, v, instantiations, is_negated)
+def neq(n : str, v : str, instantiations : 'dict[str,str|None]', is_negated : bool) -> bool:
+    """
+    Check if n == v.
+    """
+    return lt_leq_gt_geq_eq_wrapper("neq", n, v, instantiations, is_negated)
 
-def lt_leq_gt_geq_eq_wrapper(t : str, n : str, v : str, instantiations : 'dict[str,str|None]') -> bool:
+def lt_leq_gt_geq_eq_wrapper(t : str, n : str, v : str, instantiations : 'dict[str,str|None]', is_negated : bool) -> bool:
     """
     Check if 
     - t = lt: n < v
     - t = leq: n =< v
     - t = gt: n > v
     - t = geq: n > v
+    - t = eq: n == v
+    - t = neq: n != v
     """
+    if is_negated:
+        check_safe_negation([n, v], instantiations, t)
+
     if is_variable(n):
         n = get_instantiation(n, instantiations)
     else:
@@ -219,22 +244,27 @@ def lt_leq_gt_geq_eq_wrapper(t : str, n : str, v : str, instantiations : 'dict[s
     v_number = get_number(v)
 
     if t == "lt":
-        return n_number < v_number
+        return (n_number < v_number) ^ is_negated
     elif t == "leq":
-        return n_number <= v_number
+        return (n_number <= v_number) ^ is_negated
     elif t == "gt":
-        return n_number > v_number
+        return (n_number > v_number) ^ is_negated
     elif t == "geq":
-        return n_number >= v_number
+        return (n_number >= v_number) ^ is_negated
     elif t == "eq":
-        return n_number == v_number
+        return (n_number == v_number) ^ is_negated
+    elif t == "neq":
+        return (n_number != v_number) ^ is_negated
     
-    raise ValueError(f"Unknown comparison type: {t}. Expected one of 'lt', 'leq', 'gt', 'geq', 'eq'.")
+    raise ValueError(f"Unknown comparison type: {t}. Expected one of 'lt', 'leq', 'gt', 'geq', 'eq', 'neq'.")
 
-def length(l : str, n : str, instantiations : 'dict[str,str|None]') -> bool:
+def length(l : str, n : str, instantiations : 'dict[str,str|None]', is_negated : bool) -> bool:
     """
     Compute the length of a string and store it in the instantiations dictionary.
     """
+    if is_negated:
+        check_safe_negation([l, n], instantiations, "length")
+    
     if is_variable(l):
         l = get_instantiation(l, instantiations)
     else:
@@ -243,23 +273,25 @@ def length(l : str, n : str, instantiations : 'dict[str,str|None]') -> bool:
     if is_variable(n):
         if is_instantiated(n, instantiations):
             num = get_number(instantiations[n])
-            return len(l) == num
+            return (len(l) == num) ^ is_negated
         else:
             instantiations[n] = str(len(l))
             return True
     else:
         n = get_constant(n)
 
-    num = get_number(n)
-    return len(l) == num
+    return (len(l) == get_number(n)) ^ is_negated
 
 
-def capitalize(l: str, s: str, instantiations: 'dict[str,str|None]') -> bool:
+def capitalize(l: str, s: str, instantiations: 'dict[str,str|None]', is_negated : bool) -> bool:
     """
     Capitalize the string in l and store it in s.
     If s is a variable, store the capitalized string in it.
     If s is not a variable, check if it matches the capitalized string.
     """
+    if is_negated:
+        check_safe_negation([l, s], instantiations, "capitalize")
+    
     if is_variable(l):
         l = get_instantiation(l, instantiations)
     else:
@@ -272,18 +304,21 @@ def capitalize(l: str, s: str, instantiations: 'dict[str,str|None]') -> bool:
             instantiations[s] = capitalized
             return True
         else:
-            return instantiations[s] == capitalized
+            return (instantiations[s] == capitalized) ^ is_negated
     else:
         s = get_constant(s)
-    return capitalized == s
+    return (capitalized == s) ^ is_negated
 
 
-def split_select(l: str, v: str, p: str, l1: str, instantiations: 'dict[str,str|None]') -> bool:
+def split_select(l: str, v: str, p: str, l1: str, instantiations: 'dict[str,str|None]', is_negated : bool) -> bool:
     """
     Split the string l at each occurrence of v, then select the part at position p and store it in l1.
     If l1 is a variable, store the selected part in it.
     If l1 is not a variable, check if it matches the selected part.
     """
+    if is_negated:
+        check_safe_negation([l, v, p, l1], instantiations, "split_select")
+    
     if is_variable(l):
         l = get_instantiation(l, instantiations)
     else:
@@ -312,21 +347,24 @@ def split_select(l: str, v: str, p: str, l1: str, instantiations: 'dict[str,str|
             else:
                 return False
         else:
-            return p_number < len(parts) and instantiations[l1] == parts[p_number]
+            return (p_number < len(parts) and instantiations[l1] == parts[p_number]) ^ is_negated
     else:
         l1 = get_constant(l1)
     
     if p_number < len(parts):
-        return parts[p_number] == l1
-    return False
+        return (parts[p_number] == l1) ^ is_negated
+    return False ^ is_negated
 
 
-def replace(l: str, old: str, new: str, l1 : str, instantiations: 'dict[str,str|None]') -> bool:
+def replace(l: str, old: str, new: str, l1 : str, instantiations: 'dict[str,str|None]', is_negated : bool) -> bool:
     """
     Replace all occurrences of old in l with new.
     If l is a variable, replace the value in the instantiations dictionary.
     If l is not a variable, check if it matches the replaced string.
     """
+    if is_negated:
+        check_safe_negation([l, old, new, l1], instantiations, "replace")
+    
     if is_variable(l):
         l = get_instantiation(l, instantiations)
     else:
@@ -347,18 +385,22 @@ def replace(l: str, old: str, new: str, l1 : str, instantiations: 'dict[str,str|
             instantiations[l1] = replaced
             return True
         else:
-            return instantiations[l1] == replaced
+            return (instantiations[l1] == replaced) ^ is_negated
     else:
         l1 = get_constant(l1)
     
-    return replaced == l1
+    return (replaced == l1) ^ is_negated
 
 
-def line_number(l: str, n: str, current_idx : int, instantiations: 'dict[str,str|None]') -> bool:
+def line_number(l: str, n: str, current_idx : int, instantiations: 'dict[str,str|None]', is_negated : bool) -> bool:
     """
     Get the line number of the string l.
     The line number is 1-based and it is passed in current_idx from the main loop.
     """
+
+    if is_negated:
+        check_safe_negation([l, n], instantiations, "line_number")
+
     if is_variable(l):
         l = get_instantiation(l, instantiations)
     else:
@@ -369,19 +411,22 @@ def line_number(l: str, n: str, current_idx : int, instantiations: 'dict[str,str
             instantiations[n] = str(current_idx + 1)
             return True
         else:
-            return instantiations[n] == str(current_idx + 1)
+            return (instantiations[n] == str(current_idx + 1)) ^ is_negated
     else:
         n = get_constant(n)
     
-    return get_integer(n) == current_idx + 1
+    return (get_integer(n) == current_idx + 1) ^ is_negated
 
 
-def contains(l: str, s: str, instantiations: 'dict[str,str|None]') -> bool:
+def contains(l: str, s: str, instantiations: 'dict[str,str|None]', is_negated : bool) -> bool:
     """
     Check if the string l contains the substring s.
     If l is a variable, get its value from the instantiations dictionary.
     If s is a variable, get its value from the instantiations dictionary.
     """
+    if is_negated:
+        check_safe_negation([l, s], instantiations, "contains")
+    
     if is_variable(l):
         l = get_instantiation(l, instantiations)
     else:
@@ -392,16 +437,19 @@ def contains(l: str, s: str, instantiations: 'dict[str,str|None]') -> bool:
     else:
         s = get_constant(s)
     
-    return s in l
+    return (s in l) ^ is_negated
 
 
-def strip(l : str, l1 : str, instantiations : 'dict[str,str|None]') -> bool:
+def strip(l : str, l1 : str, instantiations : 'dict[str,str|None]', is_negated : bool) -> bool:
     """
     Strip leading and trailing whitespace from the string l.
     If l is a variable, get its value from the instantiations dictionary.
     If l1 is a variable, store the stripped string in it.
     If l1 is not a variable, check if it matches the stripped string.
     """
+    if is_negated:
+        check_safe_negation([l, l1], instantiations, "strip")
+
     if is_variable(l):
         l = get_instantiation(l, instantiations)
     else:
@@ -414,8 +462,8 @@ def strip(l : str, l1 : str, instantiations : 'dict[str,str|None]') -> bool:
             instantiations[l1] = stripped
             return True
         else:
-            return instantiations[l1] == stripped
+            return (instantiations[l1] == stripped) ^ is_negated
     else:
         l1 = get_constant(l1)
     
-    return stripped == l1
+    return (stripped == l1) ^ is_negated
