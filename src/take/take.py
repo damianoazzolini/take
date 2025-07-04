@@ -125,7 +125,29 @@ class Command:
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Process a command line with logic predicates")
+    epilog = """
+Available predicates (name and arity, i.e., number of arguments):
+- line/2
+- startswith/2
+- endswith/2
+- length/2
+- lt/2
+- gt/2
+- leq/2
+- eq/2
+- capitalize/2
+- strip/2
+- contains/2
+- split_select/4
+- replace/4
+    
+Examples:
+    take -f log.txt -c "line(L), print(L)" -a count
+    take -f f.txt -c "line(L), split_select(L,space,1,L1), println(L1)" -a sum -so
+"""
+    parser = argparse.ArgumentParser(description="Process a command line with logic predicates", 
+                                     epilog=epilog,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("-f", "--filename", required=True, type=str, help="Filename to process")
     parser.add_argument("-c", "--command", required=True, type=str, help="Command to process")
     parser.add_argument("-so", "--suppress-output", action="store_true", help="Suppress output, only show the result of the aggregation")
