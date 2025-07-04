@@ -231,3 +231,26 @@ def test_contains_2():
     instantiations : 'dict[str,str|None]' = {"L": "a,b,c,d,e", "S": None}
     with pytest.raises(InstantiationError):
         contains("L", "S", instantiations)
+
+
+# Test cases for the 'strip' predicate
+def test_strip_0():
+    instantiations : 'dict[str,str|None]' = {"L": "  a,b,c,d,e  ", "L1": None}
+    result = strip("L", "L1", instantiations)
+    assert result
+    assert instantiations["L1"] == "a,b,c,d,e"
+def test_strip_1():
+    instantiations : 'dict[str,str|None]' = {"L": "  a,b,c,d,e  ", "L1": "a,b,c,d,e"}
+    assert strip("L", "L1", instantiations)
+def test_strip_2():
+    instantiations : 'dict[str,str|None]' = {"L": "  a,b,c,d,e  ", "L1": "a,b,c,d"}
+    assert not strip("L", "L1", instantiations)
+def test_strip_3():
+    instantiations : 'dict[str,str|None]' = {"L": "  a,b,c,d,e  ", "L1": None}
+    result = strip("L", "L1", instantiations)
+    assert result
+    assert instantiations["L1"] == "a,b,c,d,e"
+def test_strip_4():
+    instantiations : 'dict[str,str|None]' = {"L": None, "L1": "a,b,c,d,e"}
+    with pytest.raises(InstantiationError):
+        strip("L", "L1", instantiations)

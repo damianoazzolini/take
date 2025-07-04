@@ -15,6 +15,7 @@ PREDICATES = {
     "capitalize": 2,
     "line_number": 2,
     "contains": 2,
+    "strip": 2,
     # arity 4
     "split_select": 4,
     "replace": 4
@@ -60,6 +61,17 @@ def is_variable(s : str) -> bool:
     Check if a string is a variable name (i.e., starts with an uppercase letter).
     """
     return s[0].isupper()
+
+
+def get_constant(s : str) -> str:
+    """
+    To escape quotes
+    """
+    if s.startswith("'") and s.endswith("'"):
+        return s[1:-1]
+    else:
+        return s
+
 
 def get_integer(s : str) -> int:
     """
@@ -147,14 +159,16 @@ def _starts_end_with(t : bool, l : str, s : str, instantiations : 'dict[str,str|
     """
     if is_variable(s):
         s = get_instantiation(s, instantiations)
+    else:
+        s = get_constant(s)
     
     # to allow nonsense things like checking if a constant starts with another constant
-    v = l
     if is_variable(l):
         # check_exists(l, instantiations)
-        v = get_instantiation(l, instantiations)
+        l = get_instantiation(l, instantiations)
 
-    return (t and v.startswith(s)) or (not t and v.endswith(s))
+    # print(f"Checking if {l} {'starts' if t else 'ends'} with {s}")
+    return (t and l.startswith(s)) or (not t and l.endswith(s))
 
 def lt(n : str, v : str, instantiations : 'dict[str,str|None]') -> bool:
     """
@@ -262,9 +276,12 @@ def split_select(l: str, v: str, p: str, l1: str, instantiations: 'dict[str,str|
     
     if is_variable(v):
         v = get_instantiation(v, instantiations)
+    else:
+        v = get_constant(v)
     if v == "space":
         v = " "
     
+
     if is_variable(p):
         p = get_instantiation(p, instantiations)
     
@@ -343,3 +360,25 @@ def contains(l: str, s: str, instantiations: 'dict[str,str|None]') -> bool:
         s = get_instantiation(s, instantiations)
     
     return s in l
+
+
+def strip(l : str, l1 : str, instantiations : 'dict[str,str|None]') -> bool:
+    """
+    Strip leading and trailing whitespace from the string l.
+    If l is a variable, get its value from the instantiations dictionary.
+    If l1 is a variable, store the stripped string in it.
+    If l1 is not a variable, check if it matches the stripped string.
+    """
+    if is_variable(l):
+        l = get_instantiation(l, instantiations)
+    
+    stripped = l.strip()
+
+    if is_variable(l1):
+        if not is_instantiated(l1, instantiations):
+            instantiations[l1] = stripped
+            return True
+        else:
+            return instantiations[l1] == stripped
+    
+    return stripped == l1
