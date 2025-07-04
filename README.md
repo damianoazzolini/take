@@ -43,7 +43,7 @@ LL5: -12.149458117122595
 and you want to extract the `AUCPR` results and average them.
 With `take` you can quickly do so:
 ```
-take -f gtot.txt -c "line(L), startswith(L,'AUCPR'), split_select(L,':',1,L1), strip(L1,L2), println(L2)" -a average
+take -f log.txt -c "line(L), startswith(L,'AUCPR'), split_select(L,':',1,L1), strip(L1,L2), println(L2)" -a average
 ```
 Output
 ```
