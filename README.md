@@ -1,25 +1,66 @@
 # take: process file lines with a logic-based language
 
-The goal of this tool is to filter files lines with logic-like predicates.
-
-Why? For example, to quickly extract results from a log file of an experiment.
+The goal of this tool is to filter files lines with a logic-like language.
+That is, there are some built in predicates that applies operations on lines.
 
 Each predicate takes as input at least one variable/constant with a string (the considered line) and unifies a variable with the result of the operation or succeeds/fails.
 
+Why? Because I often have to write the same python script to scan log files with a lot of text and extract results having a specific structure.
 
-<!-- # Idea: multiple filtering stage, to compute, for example, aggregations, or an aggregation command
-sum, average, stddev, min, max, count, ... -->
+## Quick Example
+Assume you have a file called `log.txt` which contains something like
+```
+----- CV 1 ----- 
+Train on: f2,f3,f4,f5, Test on: f1
+AUCPR1:  0.720441984486102
+AUCROC1: 0.735
+LL1: -12.753700137597306
 
-<!-- `split(L,",",L1)`: splits the lines L according to the delimiter , and unifies with L1 the remaining lines.  -->
-<!-- In addition, each line in L1 is associated with an integer used to denote the length of the initial line -->
-<!-- `select(L1,2,L2)`: select the second field from each split. The value stored in split also allows to keep track of the length -->
+----- CV 2 ----- 
+Train on: f1,f3,f4,f5, Test on: f2
+AUCPR2:  0.9423737373737374
+AUCROC2: 0.94
+LL2: -7.4546895016487245
+
+----- CV 3 ----- 
+Train on: f1,f2,f4,f5, Test on: f3
+AUCPR3:  0.7111492673992674
+AUCROC3: 0.71
+LL3: -11.836606612796992
+
+----- CV 4 ----- 
+Train on: f1,f2,f3,f5, Test on: f4
+AUCPR4:  0.9536004273504273
+AUCROC4: 0.95
+LL4: -6.458126608595575
+
+----- CV 5 ----- 
+Train on: f1,f2,f3,f4, Test on: f5
+AUCPR:  0.6554753579753579
+AUCROC: 0.765
+LL5: -12.149458117122595
+```
+and you want to extract the `AUCPR` results and average them.
+With `take` you can quickly do so:
+```
+take -f gtot.txt -c "line(L), startswith(L,'AUCPR'), split_select(L,':',1,L1), strip(L1,L2), println(L2)" -a average
+```
+Output
+```
+0.720441984486102
+0.9423737373737374
+0.7111492673992674
+0.9536004273504273
+0.6554753579753579
+[average] 0.7966081549169783
+```
 
 
 ## Available Predicates
-- `lines(L)`: unifies L with the current file line. Note: each command must have `line/1` in it.
+- `lines(L)`: unifies L with the current file line. **Note: each command must have `line/1` in it**
 - `startswith(L,P)`: true if `L` starts with `P`
 - `endswith(L,P)`: as `startswith/2`, but checks ends of the string
-- `length(L,N)`: true if `L` is of length N
+- `length(L,N)`: true if `L` is of length `N`
 - `lt(L,N)`: true if `L < N`
 - `gt(L,N)`: true if `L > N`
 - `leq(L,N)`: true if `L <= N`
@@ -27,9 +68,9 @@ sum, average, stddev, min, max, count, ... -->
 - `eq(L,N)`: true if `L == N`
 - `capitalize(L,C)`: `C` is the capitalized version of `L`, i.e., makes the first character as upper case and the rest lower case
 - `split_select(L,V,P,L1)`: splits `L` at each occurrence of `V` then `L1` contains the split at position `P`, starting from 0. Fails if `P` is larger than the number of splits
-- `replace(L,A,B,L1)`: replace the occurrences of the string `A` in L with `B` and unifies `L1` with the results.
+- `replace(L,A,B,L1)`: replace the occurrences of the string `A` in L with `B` and unifies `L1` with the results
 - `contains(L,A)`: true if the string unified with `L` contains the string unified with `A`, false otherwise
-- `strip(L,L1)`: removes leading and trailing whitespaces from `L` and unifies `L1` with the result.
+- `strip(L,L1)`: removes leading and trailing whitespaces from `L` and unifies `L1` with the result
 
 ## Aggregation Functions
 You can also aggregate the results of the applications of the predicates on the file with the option `-a/--aggregate`.
@@ -49,7 +90,7 @@ If you want only the result of the aggregation and suppress the other output, yo
 
 You can specify multiple aggregates by repeating the flag.
 
-## Examples
+## Few Examples
 
 Assume the file is called `f.txt`.
 
