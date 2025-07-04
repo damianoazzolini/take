@@ -166,6 +166,8 @@ def _starts_end_with(t : bool, l : str, s : str, instantiations : 'dict[str,str|
     if is_variable(l):
         # check_exists(l, instantiations)
         l = get_instantiation(l, instantiations)
+    else:
+        l = get_constant(l)
 
     # print(f"Checking if {l} {'starts' if t else 'ends'} with {s}")
     return (t and l.startswith(s)) or (not t and l.endswith(s))
@@ -206,8 +208,12 @@ def lt_leq_gt_geq_eq_wrapper(t : str, n : str, v : str, instantiations : 'dict[s
     """
     if is_variable(n):
         n = get_instantiation(n, instantiations)
+    else:
+        n = get_constant(n)
     if is_variable(v):
         v = get_instantiation(v, instantiations)
+    else:
+        v = get_constant(v)
     
     n_number = get_number(n)
     v_number = get_number(v)
@@ -231,6 +237,8 @@ def length(l : str, n : str, instantiations : 'dict[str,str|None]') -> bool:
     """
     if is_variable(l):
         l = get_instantiation(l, instantiations)
+    else:
+        l = get_constant(l)
 
     if is_variable(n):
         if is_instantiated(n, instantiations):
@@ -239,6 +247,8 @@ def length(l : str, n : str, instantiations : 'dict[str,str|None]') -> bool:
         else:
             instantiations[n] = str(len(l))
             return True
+    else:
+        n = get_constant(n)
 
     num = get_number(n)
     return len(l) == num
@@ -252,6 +262,8 @@ def capitalize(l: str, s: str, instantiations: 'dict[str,str|None]') -> bool:
     """
     if is_variable(l):
         l = get_instantiation(l, instantiations)
+    else:
+        l = get_constant(l)
 
     capitalized = l.capitalize()
 
@@ -261,7 +273,8 @@ def capitalize(l: str, s: str, instantiations: 'dict[str,str|None]') -> bool:
             return True
         else:
             return instantiations[s] == capitalized
-
+    else:
+        s = get_constant(s)
     return capitalized == s
 
 
@@ -273,6 +286,8 @@ def split_select(l: str, v: str, p: str, l1: str, instantiations: 'dict[str,str|
     """
     if is_variable(l):
         l = get_instantiation(l, instantiations)
+    else:
+        l = get_constant(l)
     
     if is_variable(v):
         v = get_instantiation(v, instantiations)
@@ -298,6 +313,8 @@ def split_select(l: str, v: str, p: str, l1: str, instantiations: 'dict[str,str|
                 return False
         else:
             return p_number < len(parts) and instantiations[l1] == parts[p_number]
+    else:
+        l1 = get_constant(l1)
     
     if p_number < len(parts):
         return parts[p_number] == l1
@@ -312,10 +329,16 @@ def replace(l: str, old: str, new: str, l1 : str, instantiations: 'dict[str,str|
     """
     if is_variable(l):
         l = get_instantiation(l, instantiations)
+    else:
+        l = get_constant(l)
     if is_variable(old):
         old = get_instantiation(old, instantiations)
+    else:
+        old = get_constant(old)
     if is_variable(new):
         new = get_instantiation(new, instantiations)
+    else:
+        new = get_constant(new)
     
     replaced = l.replace(old, new)
 
@@ -325,6 +348,8 @@ def replace(l: str, old: str, new: str, l1 : str, instantiations: 'dict[str,str|
             return True
         else:
             return instantiations[l1] == replaced
+    else:
+        l1 = get_constant(l1)
     
     return replaced == l1
 
@@ -336,6 +361,8 @@ def line_number(l: str, n: str, current_idx : int, instantiations: 'dict[str,str
     """
     if is_variable(l):
         l = get_instantiation(l, instantiations)
+    else:
+        l = get_constant(l)
     
     if is_variable(n):
         if not is_instantiated(n, instantiations):
@@ -343,6 +370,8 @@ def line_number(l: str, n: str, current_idx : int, instantiations: 'dict[str,str
             return True
         else:
             return instantiations[n] == str(current_idx + 1)
+    else:
+        n = get_constant(n)
     
     return get_integer(n) == current_idx + 1
 
@@ -355,9 +384,13 @@ def contains(l: str, s: str, instantiations: 'dict[str,str|None]') -> bool:
     """
     if is_variable(l):
         l = get_instantiation(l, instantiations)
+    else:
+        l = get_constant(l)
     
     if is_variable(s):
         s = get_instantiation(s, instantiations)
+    else:
+        s = get_constant(s)
     
     return s in l
 
@@ -371,6 +404,8 @@ def strip(l : str, l1 : str, instantiations : 'dict[str,str|None]') -> bool:
     """
     if is_variable(l):
         l = get_instantiation(l, instantiations)
+    else:
+        l = get_constant(l)
     
     stripped = l.strip()
 
@@ -380,5 +415,7 @@ def strip(l : str, l1 : str, instantiations : 'dict[str,str|None]') -> bool:
             return True
         else:
             return instantiations[l1] == stripped
+    else:
+        l1 = get_constant(l1)
     
     return stripped == l1
