@@ -1,11 +1,12 @@
-from .predicates import *
 
 import argparse
-import re
 import io
 import math
+import re
+
 from contextlib import redirect_stdout
-import sys
+
+from .predicates import *
 
 class MalformedLiteralError(Exception):
     def __init__(self, literal: str) -> None:

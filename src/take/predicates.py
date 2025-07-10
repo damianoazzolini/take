@@ -17,6 +17,7 @@ PREDICATES = {
     "line_number": 2,
     "contains": 2,
     "strip": 2,
+    "time_to_seconds": 2,
     # arity 4
     "split_select": 4,
     "replace": 4
@@ -330,6 +331,8 @@ def split_select(l: str, v: str, p: str, l1: str, instantiations: 'dict[str,str|
         v = get_constant(v)
     if v == "space":
         v = " "
+    elif v == "tab":
+        v = "\t"
     
 
     if is_variable(p):
@@ -467,3 +470,40 @@ def strip(l : str, l1 : str, instantiations : 'dict[str,str|None]', is_negated :
         l1 = get_constant(l1)
     
     return (stripped == l1) ^ is_negated
+
+
+def time_to_seconds(l : str, l1 : str, instantiations: 'dict[str,str|None]', is_negated : bool) -> bool:
+    """
+    Convert a bash time string of the form 0m1.131s to seconds.
+    If l is a variable, get its value from the instantiations dictionary.
+    If l1 is a variable, store the seconds in it.
+    If l1 is not a variable, check if it matches the seconds.
+    """
+    if is_negated:
+        check_safe_negation([l, l1], instantiations, "time_to_seconds")
+
+    if is_variable(l):
+        l = get_instantiation(l, instantiations)
+    else:
+        l = get_constant(l)
+
+    # Example: 0m1.131s -> 1.131
+    parts = l.split("m")
+    if len(parts) != 2 or not parts[1].endswith("s"):
+        raise ValueError(f"Invalid time format: {l}")
+
+    minutes = int(parts[0])
+    seconds = float(parts[1][:-1])  # Remove the 's' at the end
+
+    total_seconds = minutes * 60 + seconds
+
+    if is_variable(l1):
+        if not is_instantiated(l1, instantiations):
+            instantiations[l1] = str(total_seconds)
+            return True
+        else:
+            return (instantiations[l1] == str(total_seconds)) ^ is_negated
+    else:
+        l1 = get_constant(l1)
+    
+    return (total_seconds == get_number(l1)) ^ is_negated

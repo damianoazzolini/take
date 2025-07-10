@@ -475,6 +475,19 @@ def test_strip_negated_4():
         strip("L", "L1", instantiations, is_negated=True)
 
 
+# Test cases for the `time_to_seconds` predicate
+def test_time_to_seconds_0():
+    instantiations : 'dict[str,str|None]' = {"T": "0m1.131s", "S": None}
+    result = time_to_seconds("T", "S", instantiations, is_negated=False)
+    assert result
+    assert instantiations["S"] == "1.131"
+def test_time_to_seconds_1():
+    instantiations : 'dict[str,str|None]' = {"T": "0m1.131s", "S": "1.131"}
+    assert time_to_seconds("T", "S", instantiations, is_negated=False)
+def test_time_to_seconds_2():
+    instantiations : 'dict[str,str|None]' = {"T": "0m1.131s", "S": "2.0"}
+    assert not time_to_seconds("T", "S", instantiations, is_negated=False)
+
 # Test cases for helper functions
 
 # Tests for is_instantiated

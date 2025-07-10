@@ -68,10 +68,11 @@ Output
 - `eq(L,N)`: true if `L == N`
 - `neq(L,N)`: true if `L != N`
 - `capitalize(L,C)`: `C` is the capitalized version of `L`, i.e., makes the first character as upper case and the rest lower case
-- `split_select(L,V,P,L1)`: splits `L` at each occurrence of `V` then `L1` contains the split at position `P`, starting from 0. Fails if `P` is larger than the number of splits
+- `split_select(L,V,P,L1)`: splits `L` at each occurrence of `V` then `L1` contains the split at position `P`, starting from 0. Fails if `P` is larger than the number of splits. Special split delimiters: `V = space` and `V = tab`
 - `replace(L,A,B,L1)`: replace the occurrences of the string `A` in L with `B` and unifies `L1` with the results
 - `contains(L,A)`: true if the string unified with `L` contains the string unified with `A`, false otherwise
 - `strip(L,L1)`: removes leading and trailing whitespaces from `L` and unifies `L1` with the result
+- `time_to_seconds(L,L1)`: converts a bash time of the form AmBs into seconds (example: `L = 2m42.765s` into `L1 = 162.765`)
 
 You can also prepend `not` to predicates (except to `line/1`, `print/1`, and `println/1`) to flip the results.
 
