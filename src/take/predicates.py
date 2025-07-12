@@ -140,6 +140,7 @@ def print_line(l : str, instantiations : 'dict[str,str|None]', with_newline : bo
     if is_variable(l):
         print(instantiations[l], end="\n" if with_newline else "")
     else:
+        l = get_constant(l)
         print(l, end="\n" if with_newline else "")
     return True
     
