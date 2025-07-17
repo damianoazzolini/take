@@ -89,6 +89,9 @@ Output
 162.765
 ```
 
+## Installation
+Install `uv` and execute take like `uv run take ...` (see below the options and use the `-h` flag).
+
 
 ## Available Predicates
 - `line(L)`: unifies L with the current file line. **Note: each command must have `line/1` in it**
