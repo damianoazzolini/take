@@ -7,7 +7,7 @@ Each predicate takes as input at least one variable/constant with a string (the 
 
 Why? Because I often have to write the same python script to scan log files with a lot of text and extract results having a specific structure.
 
-## Quick Example
+## Quick Examples
 Assume you have a file called `log.txt` which contains something like
 ```
 ----- CV 1 ----- 
@@ -55,6 +55,40 @@ Output
 [average] 0.7966081549169783
 ```
 
+Another example: extract the `real` value of the bash time and convert it into seconds.
+Suppose you have a file `log.txt` of the form
+```
+Started at: 
+size 7
+[RESULT]                   [4. 4.]
+real	0m8.853s
+user	0m8.231s
+sys	0m0.110s
+
+size 8
+[RESULT]                    [4. 4.]
+real	0m31.248s
+user	0m30.784s
+sys	0m0.177s
+
+size 9
+[RESULT]                    [4. 4.]
+real	2m42.765s
+user	2m41.007s
+sys	0m1.205s
+```
+
+To do so:
+```
+take -f log.txt -c "line(L), startswith(L,'real'), split_select(L,tab,1,T), time_to_seconds(T,TS), println(TS)"
+```
+Output
+```
+8.853
+31.248
+162.765
+```
+
 
 ## Available Predicates
 - `line(L)`: unifies L with the current file line. **Note: each command must have `line/1` in it**
@@ -89,6 +123,8 @@ Available aggregates:
 - `unique`: filter unique lines
 - `first`
 - `last`
+- `sort_ascending`
+- `sort_descending`
 
 If you want only the result of the aggregation and suppress the other output, you can use the flag `-so/--suppress-output`.
 
