@@ -1,8 +1,33 @@
 import io
 from contextlib import redirect_stdout
+from tempfile import NamedTemporaryFile
+import os
 
 
 from src.take.take import *
+
+CONTENT = """
+test
+0.2
+  3
+
+try
+
+content_longer_than_14_characters
+
+LL: 0.56
+instance
+"""
+
+def get_temporary_file(content: str) -> str:
+    """
+    Create a temporary file with the given content and return its name.
+    """
+    f = NamedTemporaryFile(mode='w+', delete=False)
+    f.write(content)
+    f.flush()
+    f.close()
+    return f.name
 
 def get_result(command : 'list[str]', filename: str) -> str:
     """
@@ -15,11 +40,16 @@ def get_result(command : 'list[str]', filename: str) -> str:
 
 def test_integration_1():
     command = ["line(L), startswith(L,i), length(L,N), gt(N,5), leq(N,14), capitalize(L,LC), print(LC)"]
-    filename = "f.txt"
-    assert get_result(command, filename) == "Import random"
+    filename = get_temporary_file(CONTENT)
+    res = get_result(command, filename)
+    os.unlink(filename)
+    assert res == "Instance"
+
 def test_integration_2():
     command = ["line(L), length(L,N), lt(N,1), println(L)"]
-    filename = "f.txt"
-    assert get_result(command, filename) == "\n\n\n\n"
+    filename = get_temporary_file(CONTENT)
+    res = get_result(command, filename)
+    os.unlink(filename)
+    assert res == "\n\n\n\n"
 
 
