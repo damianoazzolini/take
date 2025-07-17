@@ -169,7 +169,7 @@ Examples:
     parser = argparse.ArgumentParser(description="Process a command line with logic predicates", 
                                      epilog=epilog,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("-f", "--filename", required=True, type=str, help="Filename to process")
+    parser.add_argument("-f", "--filename", required=True, action="append", help="Filename to process")
     parser.add_argument("-c", "--command", required=True, type=str, action="append", help="Command to process")
     parser.add_argument("-so", "--suppress-output", action="store_true", help="Suppress output, only show the result of the aggregation")
     parser.add_argument("-a", "--aggregate", action="append", choices=[
@@ -191,118 +191,137 @@ Examples:
     return parser.parse_args()
 
 
-def loop_process(args : 'argparse.Namespace'):
+def apply_sequence_commands(args : argparse.Namespace) -> 'list[str]':
     """
-    Mail loop.
+    Apply a sequence of commands to the input file.
+    This function is a placeholder for future implementation.
     """
-    # print(args.command)
     aggregate_lines : 'list[str]' = []
     c_list : 'list[Command]' = [Command(cmd) for cmd in args.command]
 
-    with open(args.filename, "r") as fp:
-        for idx, current_line in enumerate(fp):
-            current_line = current_line.rstrip('\n')
-            # apply the corresponding predicates to the line
-            # print(f"Processing line: {current_line}")
-            # clean up the variables dictionary
-            for c in c_list:
-                c.variables_dict = {var: None for var in c.variables_dict}
-                for command in c.literals:
-                    # print(f"Processing command: {command}")
-                    # print(c.variables_dict)
-                    # arity 1 predicates
-                    # if command.name in ["print", "line"]:
-                    #     fn = getattr(f"{command.name}", f"{command.name}")
-                    #     res = fn(line, command.args[0], c.variables_dict)
-                    res = False
-                    if command.name == "line":
-                        if command.is_negated:
-                            print(f"Warning: the 'line' predicate cannot be negated, ignoring the negation")
-                        res = line(current_line, command.args[0], c.variables_dict)
-                    elif command.name == "print":
-                        if command.is_negated:
-                            print(f"Warning: the 'print' predicate cannot be negated, ignoring the negation")
-                        if not args.suppress_output:
-                            res = print_line(command.args[0], c.variables_dict)
-                        if args.aggregate:
-                            with io.StringIO() as buf, redirect_stdout(buf):
-                                print_line(command.args[0], c.variables_dict)
-                                aggregate_lines.append(buf.getvalue())
-                    elif command.name == "println":
-                        if command.is_negated:
-                            print(f"Warning: the 'println' predicate cannot be negated, ignoring the negation")
-                        if not args.suppress_output:
-                            res = print_line(command.args[0], c.variables_dict, with_newline=True)
-                        if args.aggregate:
-                            with io.StringIO() as buf, redirect_stdout(buf):
-                                print_line(command.args[0], c.variables_dict, with_newline=True)
-                                aggregate_lines.append(buf.getvalue())
-                    elif command.name == "line_number":
-                        res = line_number(command.args[0], command.args[1], idx, c.variables_dict, command.is_negated)
-                    # arity 2 predicates
-                    # elif command.name in ["startswith","endswith","length","lt","leq","gt"]:
-                    elif command.name in [k for k in PREDICATES if PREDICATES[k] == 2]:
-                        fn =  globals()[command.name]
-                        res = fn(command.args[0], command.args[1], c.variables_dict, command.is_negated)
-                    elif command.name in [k for k in PREDICATES if PREDICATES[k] == 3]:
-                        fn =  globals()[command.name]
-                        res = fn(command.args[0], command.args[1], command.args[2], c.variables_dict, command.is_negated)
-                    elif command.name in [k for k in PREDICATES if PREDICATES[k] == 4]:
-                        fn =  globals()[command.name]
-                        res = fn(command.args[0], command.args[1], command.args[2], command.args[3], c.variables_dict, command.is_negated)
-                    
-                    if not res:
-                        break
-        
+    for filename in args.filename:
+        with open(filename, "r") as fp:
+            for idx, current_line in enumerate(fp):
+                current_line = current_line.rstrip('\n')
+                # apply the corresponding predicates to the line
+                # print(f"Processing line: {current_line}")
+                # clean up the variables dictionary
+                for c in c_list:
+                    c.variables_dict = {var: None for var in c.variables_dict}
+                    for command in c.literals:
+                        # print(f"Processing command: {command}")
+                        # print(c.variables_dict)
+                        # arity 1 predicates
+                        # if command.name in ["print", "line"]:
+                        #     fn = getattr(f"{command.name}", f"{command.name}")
+                        #     res = fn(line, command.args[0], c.variables_dict)
+                        res = False
+                        if command.name == "line":
+                            if command.is_negated:
+                                print(f"Warning: the 'line' predicate cannot be negated, ignoring the negation")
+                            res = line(current_line, command.args[0], c.variables_dict)
+                        elif command.name == "print":
+                            if command.is_negated:
+                                print(f"Warning: the 'print' predicate cannot be negated, ignoring the negation")
+                            if not args.suppress_output:
+                                res = print_line(command.args[0], c.variables_dict)
+                            if args.aggregate:
+                                with io.StringIO() as buf, redirect_stdout(buf):
+                                    print_line(command.args[0], c.variables_dict)
+                                    aggregate_lines.append(buf.getvalue())
+                        elif command.name == "println":
+                            if command.is_negated:
+                                print(f"Warning: the 'println' predicate cannot be negated, ignoring the negation")
+                            if not args.suppress_output:
+                                res = print_line(command.args[0], c.variables_dict, with_newline=True)
+                            if args.aggregate:
+                                with io.StringIO() as buf, redirect_stdout(buf):
+                                    print_line(command.args[0], c.variables_dict, with_newline=True)
+                                    aggregate_lines.append(buf.getvalue())
+                        elif command.name == "line_number":
+                            res = line_number(command.args[0], command.args[1], idx, c.variables_dict, command.is_negated)
+                        # arity 2 predicates
+                        # elif command.name in ["startswith","endswith","length","lt","leq","gt"]:
+                        elif command.name in [k for k in PREDICATES if PREDICATES[k] == 2]:
+                            fn =  globals()[command.name]
+                            res = fn(command.args[0], command.args[1], c.variables_dict, command.is_negated)
+                        elif command.name in [k for k in PREDICATES if PREDICATES[k] == 3]:
+                            fn =  globals()[command.name]
+                            res = fn(command.args[0], command.args[1], command.args[2], c.variables_dict, command.is_negated)
+                        elif command.name in [k for k in PREDICATES if PREDICATES[k] == 4]:
+                            fn =  globals()[command.name]
+                            res = fn(command.args[0], command.args[1], command.args[2], command.args[3], c.variables_dict, command.is_negated)
+                        
+                        if not res:
+                            break
+
+    return aggregate_lines    
+
+
+def apply_aggregation_function(aggregate_lines : 'list[str]', args : argparse.Namespace) -> None:
+    """
+    Apply the aggregate function.
+    """
+    # check aggregation function
+    for aggregate in args.aggregate:
+        prefix = f"[{aggregate}] "
+        if len(aggregate_lines) == 0:
+            print("[Warning] No lines to aggregate")
+            return
+        if aggregate == "count":
+            print(f"{prefix}{len(aggregate_lines)}")
+        elif aggregate == "sum":
+            total = sum(float(line) for line in aggregate_lines)
+            print(f"{prefix}{total}")
+        elif aggregate == "product":
+            total = math.prod(float(line) for line in aggregate_lines)
+            print(f"{prefix}{total}")
+        elif aggregate == "average":
+            total = sum(float(line) for line in aggregate_lines)
+            count = len(aggregate_lines)
+            res = total / count if count > 0 else 0
+            print(f"{prefix}{res}")
+        elif aggregate == "min":
+            res = min(float(line) for line in aggregate_lines)
+            print(f"{prefix}{res}")
+        elif aggregate == "max":
+            res = max(float(line) for line in aggregate_lines)
+            print(f"{prefix}{res}")
+        elif aggregate == "concat":
+            res = ''.join(aggregate_lines)
+            print(f"{prefix}{res}")
+        # elif aggregate == "join": # TODO: with a separator
+        #     print(', '.join(aggregate_lines))
+        elif aggregate == "unique":
+            unique_lines = set(aggregate_lines)
+            res = '\n'.join(unique_lines)
+            print(f"{prefix}{res}")
+        elif aggregate == "first":
+            res = aggregate_lines[0]
+            print(f"{prefix}{res}")
+        elif aggregate == "last":
+            res = aggregate_lines[-1]
+            print(f"{prefix}{res}")
+        elif aggregate == "sort_ascending":
+            res = wrap_sort(aggregate_lines, reverse=False)
+            print(f"{prefix}\n{res}")
+        elif aggregate == "sort_descending":
+            res = wrap_sort(aggregate_lines, reverse=True)
+            print(f"{prefix}\n{res}")
+        else:
+            print(f"Unknown aggregation function: {aggregate}")
+
+
+def loop_process(args : 'argparse.Namespace'):
+    """
+    Main loop.
+    """
+    aggregate_lines : 'list[str]' = apply_sequence_commands(args)
+
     # check aggregation function
     if args.aggregate:
-        for aggregate in args.aggregate:
-            prefix = f"[{aggregate}] "
-            if len(aggregate_lines) == 0:
-                print("[Warning] No lines to aggregate")
-                return
-            if aggregate == "count":
-                print(f"{prefix}{len(aggregate_lines)}")
-            elif aggregate == "sum":
-                total = sum(float(line) for line in aggregate_lines)
-                print(f"{prefix}{total}")
-            elif aggregate == "product":
-                total = math.prod(float(line) for line in aggregate_lines)
-                print(f"{prefix}{total}")
-            elif aggregate == "average":
-                total = sum(float(line) for line in aggregate_lines)
-                count = len(aggregate_lines)
-                res = total / count if count > 0 else 0
-                print(f"{prefix}{res}")
-            elif aggregate == "min":
-                res = min(float(line) for line in aggregate_lines)
-                print(f"{prefix}{res}")
-            elif aggregate == "max":
-                res = max(float(line) for line in aggregate_lines)
-                print(f"{prefix}{res}")
-            elif aggregate == "concat":
-                res = ''.join(aggregate_lines)
-                print(f"{prefix}{res}")
-            # elif aggregate == "join": # TODO: with a separator
-            #     print(', '.join(aggregate_lines))
-            elif aggregate == "unique":
-                unique_lines = set(aggregate_lines)
-                res = '\n'.join(unique_lines)
-                print(f"{prefix}{res}")
-            elif aggregate == "first":
-                res = aggregate_lines[0]
-                print(f"{prefix}{res}")
-            elif aggregate == "last":
-                res = aggregate_lines[-1]
-                print(f"{prefix}{res}")
-            elif aggregate == "sort_ascending":
-                res = wrap_sort(aggregate_lines, reverse=False)
-                print(f"{prefix}\n{res}")
-            elif aggregate == "sort_descending":
-                res = wrap_sort(aggregate_lines, reverse=True)
-                print(f"{prefix}\n{res}")
-            else:
-                print(f"Unknown aggregation function: {aggregate}")
+        apply_aggregation_function(aggregate_lines, args)
+
 
 def take_main():
     """

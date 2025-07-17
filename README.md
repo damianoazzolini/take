@@ -137,7 +137,3 @@ Assume the file is called `f.txt`.
 Count the empty lines from a file: `take -f f.txt -c "line(L), length(L,N), lt(N,1), println(L)" -a count -so`
 
 Assuming you have a file where the line contains results separated by spaces and you want to pick the second element of each line and sum all: `take -f f.txt -c "line(L), split_select(L,space,1,L1), println(L1)" -a sum -so`
-
-
-## To Implement
-- negation
