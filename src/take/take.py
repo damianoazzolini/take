@@ -7,6 +7,7 @@ import re
 from contextlib import redirect_stdout
 
 from .predicates import *
+from .utils import *
 
 class MalformedLiteralError(Exception):
     def __init__(self, literal: str) -> None:
@@ -295,14 +296,10 @@ def loop_process(args : 'argparse.Namespace'):
                 res = aggregate_lines[-1]
                 print(f"{prefix}{res}")
             elif aggregate == "sort_ascending":
-                # TODO: check if all elements are numbers, and if so sort them as numbers
-                aggregate_lines = [line.rstrip('\n') for line in aggregate_lines]
-                sorted_lines = sorted(aggregate_lines)
-                res = '\n'.join(sorted_lines)
+                res = wrap_sort(aggregate_lines, reverse=False)
                 print(f"{prefix}\n{res}")
             elif aggregate == "sort_descending":
-                sorted_lines = sorted(aggregate_lines, reverse=True)
-                res = '\n'.join(sorted_lines)
+                res = wrap_sort(aggregate_lines, reverse=True)
                 print(f"{prefix}\n{res}")
             else:
                 print(f"Unknown aggregation function: {aggregate}")
