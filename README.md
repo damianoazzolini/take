@@ -90,11 +90,18 @@ Output
 ```
 
 ## Installation
-Install `uv` and execute take like `uv run take ...` (see below the options and use the `-h` flag).
+Install [`uv`](https://docs.astral.sh/uv/) and execute take with `uv run take` (see below the options and/or use the `-h` flag).
 
 
-## Available Predicates
-- `line(L)`: unifies L with the current file line. **Note: each command must have `line/1` in it**
+## Quick Description and Available Predicates
+Variables start with an uppercase letter while constants starts with a lowercase letter, are numbers, or are enclosed within single quotes.
+The execution idea is simple: each command starts with a `line/1` predicate which assigns its argument to the content of the current file line (for instance `line(L)` assigns `L` to the content of the current line, since `L` is a variable. If `L` is a constant, it checks whether the current line is equal to the constant).
+Then, iteratively, it applies subsequent commands, in order of appearance, until failure.
+To print results, you can use the `print/1` or `println/1`.
+
+Available predicates:
+- `line(L)`: unifies `L` with the current file line. **Note: each command must have `line/1` in it**
+- `print(L)/println(L)`: print the content of `L` (`println/1` also adds a newline)
 - `startswith(L,P)`: true if `L` starts with `P`
 - `endswith(L,P)`: as `startswith/2`, but checks ends of the string
 - `length(L,N)`: true if `L` is of length `N`
@@ -111,11 +118,14 @@ Install `uv` and execute take like `uv run take ...` (see below the options and 
 - `strip(L,L1)`: removes leading and trailing whitespaces from `L` and unifies `L1` with the result
 - `time_to_seconds(L,L1)`: converts a bash time of the form AmBs into seconds (example: `L = 2m42.765s` into `L1 = 162.765`)
 
-You can also prepend `not` to predicates (except to `line/1`, `print/1`, and `println/1`) to flip the results.
+You can also prepend `not` to predicates (except to `line/1`, `print/1`, and `println/1`) to flip the result.
+
+You can pass arguments as strings by enclosing them into single quotes (e.g., `'Hello'` will be treated as a string and not as a variable).
 
 ## Aggregation Functions
 You can also aggregate the results of the applications of the predicates on the file with the option `-a/--aggregate`.
-Available aggregates:
+
+Available aggregates (some are self-explanatory):
 - `count`: count the lines
 - `sum`
 - `product`
@@ -140,3 +150,10 @@ Assume the file is called `f.txt`.
 Count the empty lines from a file: `take -f f.txt -c "line(L), length(L,N), lt(N,1), println(L)" -a count -so`
 
 Assuming you have a file where the line contains results separated by spaces and you want to pick the second element of each line and sum all: `take -f f.txt -c "line(L), split_select(L,space,1,L1), println(L1)" -a sum -so`
+
+
+## Contributing
+Suggestions, issues, pull requests, etc, are welcome.
+
+## Disclaimer
+The program is provided as it is and it main contain bugs.
