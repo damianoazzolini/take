@@ -1,4 +1,4 @@
-# take: process file lines with a logic-based language
+# take: process file lines with a logic-like language
 
 The goal of this tool is to filter files lines with a logic-like language.
 That is, there are some built in predicates that applies operations on lines.
