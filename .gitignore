@@ -6,9 +6,16 @@ dist/
 wheels/
 *.egg-info
 a.py
+b.py
 f.txt
+g.txt
+gtot.txt
+log.log
 *.tmp
 # Virtual environments
 .venv
 .benchmarks/
 .pytest_cache/
+.coverage
+TODO.md
+scripts/
