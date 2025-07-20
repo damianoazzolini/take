@@ -132,9 +132,6 @@ class Command:
 
         variables = list(set([arg for lit in self.literals for arg in lit.args if arg[0].isupper()]))
         self.variables_dict = {var: None for var in variables} 
-        # TODO: maybe tuple of "" and Bool. The bool is set to True if the variable is instantiated, False otherwise
-        # so I can reason on empty lines (otherwise, empty lines are "" which is the same as a variable not instantiated)
-        # or use None instead of "" for uninstantiated variables
 
         # check singleton variables (i.e., variables appearing only once in the command)
         for var in self.variables_dict:
@@ -218,11 +215,11 @@ def apply_sequence_commands(args : argparse.Namespace) -> 'list[str]':
                         res = False
                         if command.name == "line":
                             if command.is_negated:
-                                print(f"Warning: the 'line' predicate cannot be negated, ignoring the negation")
+                                print("Warning: the 'line' predicate cannot be negated, ignoring the negation")
                             res = line(current_line, command.args[0], c.variables_dict)
                         elif command.name == "print":
                             if command.is_negated:
-                                print(f"Warning: the 'print' predicate cannot be negated, ignoring the negation")
+                                print("Warning: the 'print' predicate cannot be negated, ignoring the negation")
                             if not args.suppress_output:
                                 res = print_line(command.args[0], c.variables_dict)
                             if args.aggregate:
@@ -231,7 +228,7 @@ def apply_sequence_commands(args : argparse.Namespace) -> 'list[str]':
                                     aggregate_lines.append(buf.getvalue())
                         elif command.name == "println":
                             if command.is_negated:
-                                print(f"Warning: the 'println' predicate cannot be negated, ignoring the negation")
+                                print("Warning: the 'println' predicate cannot be negated, ignoring the negation")
                             if not args.suppress_output:
                                 res = print_line(command.args[0], c.variables_dict, with_newline=True)
                             if args.aggregate:

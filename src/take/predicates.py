@@ -43,9 +43,8 @@ def is_instantiated(s : str, instantiations : 'dict[str,str|None]') -> bool:
     Returns True if the variable is instantiated, False otherwise.
     """
     if s in instantiations:
-        return instantiations[s] != None
-    else:
-        raise VariableNotFoundError(f"Variable {s} not found in instantiations")
+        return instantiations[s] is not None
+    raise VariableNotFoundError(f"Variable {s} not found in instantiations")
 
 
 def get_instantiation(s : str, instantiations : 'dict[str,str|None]') -> str:
@@ -59,7 +58,8 @@ def get_instantiation(s : str, instantiations : 'dict[str,str|None]') -> str:
     raise InstantiationError(f"s is not instantiated: {s}")
     # else:
     #     raise VariableNotFoundError(f"Variable {s} not found in instantiations")
-    
+
+
 def is_variable(s : str) -> bool:
     """
     Check if a string is a variable name (i.e., starts with an uppercase letter).
@@ -73,8 +73,7 @@ def get_constant(s : str) -> str:
     """
     if s.startswith("'") and s.endswith("'"):
         return s[1:-1]
-    else:
-        return s
+    return s
 
 
 def get_integer(s : str) -> int:
@@ -125,10 +124,10 @@ def line(current_line : str, l : str, instantiations : 'dict[str,str|None]') -> 
         # check_exists(l, instantiations)
         if is_instantiated(l, instantiations):
             return current_line == instantiations[l]
-        else:
-            instantiations[l] = current_line
+
+        instantiations[l] = current_line
         return True
-    
+
     return current_line == l
 
 def print_line(l : str, instantiations : 'dict[str,str|None]', with_newline : bool = False) -> bool:
@@ -143,7 +142,7 @@ def print_line(l : str, instantiations : 'dict[str,str|None]', with_newline : bo
         l = get_constant(l)
         print(l, end="\n" if with_newline else "")
     return True
-    
+
 
 def startswith(l : str, s : str, instantiations : 'dict[str,str|None]', is_negated : bool) -> bool:
     """
@@ -173,12 +172,12 @@ def _starts_end_with(t : bool, l : str, s : str, instantiations : 'dict[str,str|
     """
     if is_negated:
         check_safe_negation([l, s], instantiations, f"{'startswith' if t else 'endswith'}")
-    
+
     if is_variable(s):
         s = get_instantiation(s, instantiations)
     else:
         s = get_constant(s)
-    
+
     # to allow nonsense things like checking if a constant starts with another constant
     if is_variable(l):
         # check_exists(l, instantiations)
@@ -257,7 +256,7 @@ def lt_leq_gt_geq_eq_wrapper(t : str, n : str, v : str, instantiations : 'dict[s
         return (n_number == v_number) ^ is_negated
     elif t == "neq":
         return (n_number != v_number) ^ is_negated
-    
+
     raise ValueError(f"Unknown comparison type: {t}. Expected one of 'lt', 'leq', 'gt', 'geq', 'eq', 'neq'.")
 
 def length(l : str, n : str, instantiations : 'dict[str,str|None]', is_negated : bool) -> bool:
@@ -276,12 +275,11 @@ def length(l : str, n : str, instantiations : 'dict[str,str|None]', is_negated :
         if is_instantiated(n, instantiations):
             num = get_number(instantiations[n])
             return (len(l) == num) ^ is_negated
-        else:
-            instantiations[n] = str(len(l))
-            return True
-    else:
-        n = get_constant(n)
 
+        instantiations[n] = str(len(l))
+        return True
+
+    n = get_constant(n)
     return (len(l) == get_number(n)) ^ is_negated
 
 
@@ -302,13 +300,12 @@ def capitalize(l: str, s: str, instantiations: 'dict[str,str|None]', is_negated 
     capitalized = l.capitalize()
 
     if is_variable(s):
-        if instantiations[s] == None:
+        if instantiations[s] is None:
             instantiations[s] = capitalized
             return True
-        else:
-            return (instantiations[s] == capitalized) ^ is_negated
-    else:
-        s = get_constant(s)
+        return (instantiations[s] == capitalized) ^ is_negated
+
+    s = get_constant(s)
     return (capitalized == s) ^ is_negated
 
 
@@ -348,13 +345,10 @@ def split_select(l: str, v: str, p: str, l1: str, instantiations: 'dict[str,str|
             if p_number < len(parts):
                 instantiations[l1] = parts[p_number]
                 return True
-            else:
-                return False
-        else:
-            return (p_number < len(parts) and instantiations[l1] == parts[p_number]) ^ is_negated
-    else:
-        l1 = get_constant(l1)
-    
+            return False
+        return (p_number < len(parts) and instantiations[l1] == parts[p_number]) ^ is_negated
+
+    l1 = get_constant(l1)    
     if p_number < len(parts):
         return (parts[p_number] == l1) ^ is_negated
     return False ^ is_negated
@@ -388,11 +382,9 @@ def replace(l: str, old: str, new: str, l1 : str, instantiations: 'dict[str,str|
         if not is_instantiated(l1, instantiations):
             instantiations[l1] = replaced
             return True
-        else:
-            return (instantiations[l1] == replaced) ^ is_negated
-    else:
-        l1 = get_constant(l1)
-    
+        return (instantiations[l1] == replaced) ^ is_negated
+
+    l1 = get_constant(l1)    
     return (replaced == l1) ^ is_negated
 
 
@@ -414,11 +406,9 @@ def line_number(l: str, n: str, current_idx : int, instantiations: 'dict[str,str
         if not is_instantiated(n, instantiations):
             instantiations[n] = str(current_idx + 1)
             return True
-        else:
-            return (instantiations[n] == str(current_idx + 1)) ^ is_negated
-    else:
-        n = get_constant(n)
-    
+        return (instantiations[n] == str(current_idx + 1)) ^ is_negated
+
+    n = get_constant(n)    
     return (get_integer(n) == current_idx + 1) ^ is_negated
 
 
@@ -465,11 +455,9 @@ def strip(l : str, l1 : str, instantiations : 'dict[str,str|None]', is_negated :
         if not is_instantiated(l1, instantiations):
             instantiations[l1] = stripped
             return True
-        else:
-            return (instantiations[l1] == stripped) ^ is_negated
-    else:
-        l1 = get_constant(l1)
-    
+        return (instantiations[l1] == stripped) ^ is_negated
+
+    l1 = get_constant(l1)    
     return (stripped == l1) ^ is_negated
 
 
@@ -502,9 +490,7 @@ def time_to_seconds(l : str, l1 : str, instantiations: 'dict[str,str|None]', is_
         if not is_instantiated(l1, instantiations):
             instantiations[l1] = str(total_seconds)
             return True
-        else:
-            return (instantiations[l1] == str(total_seconds)) ^ is_negated
-    else:
-        l1 = get_constant(l1)
-    
+        return (instantiations[l1] == str(total_seconds)) ^ is_negated
+
+    l1 = get_constant(l1)
     return (total_seconds == get_number(l1)) ^ is_negated
