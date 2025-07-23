@@ -20,7 +20,7 @@ def is_float(s : str) -> bool:
             return False
     return False
 
-def wrap_sort(aggregate_lines : 'list[str]', reverse : bool) -> str:
+def wrap_sort(aggregate_lines : 'list[str]', reverse : bool) -> 'list[str | int | float]':
     """
     This function is used to sort the lines of a file.
     It returns a list of strings that can be sorted.
@@ -40,6 +40,4 @@ def wrap_sort(aggregate_lines : 'list[str]', reverse : bool) -> str:
     if not all_numbers:
         new_data = aggregate_lines
 
-    sorted_lines = sorted(new_data, reverse=reverse)
-
-    return '\n'.join([str(s) for s in sorted_lines])
+    return sorted(new_data, reverse=reverse)

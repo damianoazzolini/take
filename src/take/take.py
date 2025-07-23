@@ -1,6 +1,7 @@
 
 import argparse
 import io
+import matplotlib.pyplot as plt
 import math
 import re
 
@@ -169,6 +170,7 @@ Examples:
     parser.add_argument("-f", "--filename", required=True, action="append", help="Filename to process")
     parser.add_argument("-c", "--command", required=True, type=str, action="append", help="Command to process")
     parser.add_argument("-so", "--suppress-output", action="store_true", help="Suppress output, only show the result of the aggregation")
+    parser.add_argument("-p", "--plot", action="store_true", help="Plot the results")
     parser.add_argument("-a", "--aggregate", action="append", choices=[
             "count",
             "sum",
@@ -186,6 +188,20 @@ Examples:
         help="Aggregation function to apply to the results")
     # parser.add_argument("-v", "--verbose", action="store_true",help="Enable verbose output")
     return parser.parse_args()
+
+def plot(data : 'list[str]') -> None:
+    """
+    Placeholder for a plotting function.
+    """
+    x_axis = list(range(len(data)))
+    try:
+        plt.plot(x_axis, data)
+        plt.show()
+    except Exception as e:
+        print(f"ERROR: Error plotting data: {e}")
+        # Handle the error, e.g., log it or print a message
+        # For now, just print the error
+
 
 
 def apply_sequence_commands(args : argparse.Namespace) -> 'list[str]':
@@ -255,16 +271,17 @@ def apply_sequence_commands(args : argparse.Namespace) -> 'list[str]':
     return aggregate_lines    
 
 
-def apply_aggregation_function(aggregate_lines : 'list[str]', args : argparse.Namespace) -> None:
+def apply_aggregation_function(aggregate_lines : 'list[str]', args : argparse.Namespace) -> 'list[str] | list[float]':
     """
     Apply the aggregate function.
     """
     # check aggregation function
+    obtained_data : 'list[str] | list[float]' = []
     for aggregate in args.aggregate:
         prefix = f"[{aggregate}] "
         if len(aggregate_lines) == 0:
             print("[Warning] No lines to aggregate")
-            return
+            return []
         if aggregate == "count":
             print(f"{prefix}{len(aggregate_lines)}")
         elif aggregate == "sum":
@@ -291,6 +308,7 @@ def apply_aggregation_function(aggregate_lines : 'list[str]', args : argparse.Na
         #     print(', '.join(aggregate_lines))
         elif aggregate == "unique":
             unique_lines = set(aggregate_lines)
+            obtained_data = list(unique_lines)
             res = '\n'.join(unique_lines)
             print(f"{prefix}{res}")
         elif aggregate == "first":
@@ -300,13 +318,19 @@ def apply_aggregation_function(aggregate_lines : 'list[str]', args : argparse.Na
             res = aggregate_lines[-1]
             print(f"{prefix}{res}")
         elif aggregate == "sort_ascending":
-            res = wrap_sort(aggregate_lines, reverse=False)
+            sorted_lines = wrap_sort(aggregate_lines, reverse=False)
+            obtained_data = sorted_lines
+            res = '\n'.join([str(s) for s in sorted_lines])
             print(f"{prefix}\n{res}")
         elif aggregate == "sort_descending":
-            res = wrap_sort(aggregate_lines, reverse=True)
+            sorted_lines = wrap_sort(aggregate_lines, reverse=True)
+            obtained_data = sorted_lines
+            res = '\n'.join([str(s) for s in sorted_lines])
             print(f"{prefix}\n{res}")
         else:
             print(f"Unknown aggregation function: {aggregate}")
+
+    return obtained_data
 
 
 def loop_process(args : 'argparse.Namespace'):
@@ -317,7 +341,13 @@ def loop_process(args : 'argparse.Namespace'):
 
     # check aggregation function
     if args.aggregate:
-        apply_aggregation_function(aggregate_lines, args)
+        res = apply_aggregation_function(aggregate_lines, args)
+    
+    if args.plot:
+        if len(res) > 0:
+            plot(res)
+        else:
+            print("Waring: No data to plot.")
 
 
 def take_main():
