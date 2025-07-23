@@ -75,7 +75,7 @@ def get_result(command : 'list[str]', filename: str, aggregate : 'list[str]' = [
     """
     Helper function to get the result of a command.
     """
-    args = argparse.Namespace(filename=[filename], command=command, suppress_output=False, aggregate=aggregate)
+    args = argparse.Namespace(filename=[filename], command=command, suppress_output=False, aggregate=aggregate, plot=False)
     with io.StringIO() as buf, redirect_stdout(buf):
         loop_process(args)
         return buf.getvalue()
