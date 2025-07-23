@@ -7,7 +7,9 @@ authors = [
     { name = "damianoazzolini", email = "damiano.azzolini@unife.com" }
 ]
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "matplotlib>=3.10.3",
+]
 
 [project.scripts]
 take = "take:main"

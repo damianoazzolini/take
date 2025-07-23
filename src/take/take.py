@@ -163,15 +163,23 @@ def apply_sequence_commands(args : argparse.Namespace) -> 'list[str]':
     """
     aggregate_lines : 'list[str]' = []
     c_list : 'list[Command]' = [Command(cmd) for cmd in args.command]
+    count_print : int = 0
+    stop_loop : bool = False
 
     for filename in args.filename:
+        if stop_loop:
+            break
         with open(filename, "r") as fp:
             for idx, current_line in enumerate(fp):
+                if stop_loop:
+                    break
                 current_line = current_line.rstrip('\n')
                 # apply the corresponding predicates to the line
                 # print(f"Processing line: {current_line}")
                 # clean up the variables dictionary
                 for c in c_list:
+                    if stop_loop:
+                        break
                     c.variables_dict = {var: None for var in c.variables_dict}
                     for command in c.literals:
                         # print(f"Processing command: {command}")
@@ -185,23 +193,18 @@ def apply_sequence_commands(args : argparse.Namespace) -> 'list[str]':
                             if command.is_negated:
                                 print("Warning: the 'line' predicate cannot be negated, ignoring the negation")
                             res = line(current_line, command.args[0], c.variables_dict)
-                        elif command.name == "print":
+                        elif command.name == "print" or command.name == "println":
+                            if count_print >= args.max_count and args.max_count > 0:
+                                stop_loop = True
+                                break
+                            count_print += 1
                             if command.is_negated:
-                                print("Warning: the 'print' predicate cannot be negated, ignoring the negation")
+                                print(f"Warning: the '{command.name}' predicate cannot be negated, ignoring the negation")
                             if not args.suppress_output:
-                                res = print_line(command.args[0], c.variables_dict)
+                                res = print_line(command.args[0], c.variables_dict, with_newline=command.name == "println")
                             if args.aggregate:
                                 with io.StringIO() as buf, redirect_stdout(buf):
-                                    print_line(command.args[0], c.variables_dict)
-                                    aggregate_lines.append(buf.getvalue())
-                        elif command.name == "println":
-                            if command.is_negated:
-                                print("Warning: the 'println' predicate cannot be negated, ignoring the negation")
-                            if not args.suppress_output:
-                                res = print_line(command.args[0], c.variables_dict, with_newline=True)
-                            if args.aggregate:
-                                with io.StringIO() as buf, redirect_stdout(buf):
-                                    print_line(command.args[0], c.variables_dict, with_newline=True)
+                                    print_line(command.args[0], c.variables_dict, with_newline=command.name == "println")
                                     aggregate_lines.append(buf.getvalue())
                         elif command.name == "line_number":
                             res = line_number(command.args[0], command.args[1], idx, c.variables_dict, command.is_negated)

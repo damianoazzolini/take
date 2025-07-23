@@ -29,7 +29,8 @@ Examples:
     parser.add_argument("-f", "--filename", required=True, action="append", help="Filename to process")
     parser.add_argument("-c", "--command", required=True, type=str, action="append", help="Command to process")
     parser.add_argument("-so", "--suppress-output", action="store_true", help="Suppress output, only show the result of the aggregation")
-    parser.add_argument("-p", "--plot", action="store_true", help="Plot the results")    
+    parser.add_argument("-p", "--plot", action="store_true", help="Plot the results")
+    parser.add_argument("-m", "--max-count", type=int, default=0, help="Maximum number of lines to process overall (0 for no limit)") # TODO
     parser.add_argument("-a", "--aggregate", action="append", choices=[
             "count",
             "sum",

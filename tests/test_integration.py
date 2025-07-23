@@ -71,11 +71,11 @@ def get_temporary_file(content: str) -> str:
     f.close()
     return f.name
 
-def get_result(command : 'list[str]', filename: str, aggregate : 'list[str]' = []) -> str:
+def get_result(command : 'list[str]', filename: str, aggregate : 'list[str]' = [], max_count: int = 0) -> str:
     """
     Helper function to get the result of a command.
     """
-    args = argparse.Namespace(filename=[filename], command=command, suppress_output=False, aggregate=aggregate, plot=False)
+    args = argparse.Namespace(filename=[filename], command=command, suppress_output=False, aggregate=aggregate, plot=False, max_count=max_count)
     with io.StringIO() as buf, redirect_stdout(buf):
         loop_process(args)
         return buf.getvalue()
@@ -121,5 +121,12 @@ def test_integration_sw_sps_st_agg_sort():
     res = get_result(command, filename, aggregate=["sort_descending"])
     os.unlink(filename)
     assert res.strip().replace("\n","").replace(" ","") == "7891011.5[sort_descending]11.510987"
+
+def test_integration_sw_sps_st_max_count():
+    command = ["line(L), startswith(L,size), split_select(L,space,1,S), println(S)"]
+    filename = get_temporary_file(CONTENT)
+    res = get_result(command, filename, max_count=4)
+    os.unlink(filename)
+    assert res.strip().replace("\n","").replace(" ","") == "78910"
 
 
