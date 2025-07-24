@@ -71,11 +71,25 @@ def get_temporary_file(content: str) -> str:
     f.close()
     return f.name
 
-def get_result(command : 'list[str]', filename: str, aggregate : 'list[str]' = [], max_count: int = 0) -> str:
+def get_result(
+        command : 'list[str]',
+        filename: str,
+        aggregate : 'list[str]' = [],
+        max_count: int = 0,
+        with_filename : bool = False
+    ) -> str:
     """
     Helper function to get the result of a command.
     """
-    args = argparse.Namespace(filename=[filename], command=command, suppress_output=False, aggregate=aggregate, plot=False, max_count=max_count)
+    args = argparse.Namespace(
+        filename=[filename],
+        command=command,
+        suppress_output=False,
+        aggregate=aggregate,
+        plot=False,
+        max_count=max_count,
+        with_filename=with_filename
+    )
     with io.StringIO() as buf, redirect_stdout(buf):
         loop_process(args)
         return buf.getvalue()
@@ -128,5 +142,12 @@ def test_integration_sw_sps_st_max_count():
     res = get_result(command, filename, max_count=4)
     os.unlink(filename)
     assert res.strip().replace("\n","").replace(" ","") == "78910"
+
+def test_integration_sw_sps_st_max_count_filename():
+    command = ["line(L), startswith(L,size), split_select(L,space,1,S), println(S)"]
+    filename = get_temporary_file(CONTENT)
+    res = get_result(command, filename, max_count=4, with_filename=True)
+    os.unlink(filename)
+    assert res.strip().replace("\n","").replace(" ","") == f"{filename}:7{filename}:8{filename}:9{filename}:10"
 
 

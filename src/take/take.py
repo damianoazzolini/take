@@ -201,6 +201,8 @@ def apply_sequence_commands(args : argparse.Namespace) -> 'list[str]':
                             if command.is_negated:
                                 print(f"Warning: the '{command.name}' predicate cannot be negated, ignoring the negation")
                             if not args.suppress_output:
+                                if args.with_filename:
+                                    print(f"{filename}:", end='')
                                 res = print_line(command.args[0], c.variables_dict, with_newline=command.name == "println")
                             if args.aggregate:
                                 with io.StringIO() as buf, redirect_stdout(buf):
