@@ -24,6 +24,14 @@ def test_startswith_3():
 def test_startswith_4():
     instantiations : 'dict[str,str|None]' = {"L1": "v0,2,6", "L2": "v0"}
     assert not startswith("l1", "L2", instantiations, is_negated=False)
+def test_startswith_i_1():
+    instantiations : 'dict[str,str|None]' = {"L1": "Hello World", "L2": "hello"}
+    result = startswith_i("L1", "L2", instantiations, is_negated=False)
+    assert result
+def test_startswith_i_2():
+    instantiations : 'dict[str,str|None]' = {"L1": "Hello World", "L2": "WORLD"}
+    result = startswith_i("L1", "L2", instantiations, is_negated=False)
+    assert not result
 # Tests for endswith function
 def test_endswith_variable_true():
     instantiations : 'dict[str,str|None]' = {"L": "hello world", "S": "world"}
@@ -47,7 +55,12 @@ def test_endswith_uninstantiated_suffix():
 def test_endswith_constant_line_and_suffix():
     instantiations : 'dict[str,str|None]' = {}
     assert endswith("hello world", "world", instantiations, is_negated=False)
-
+def test_endswith_case_insensitive():
+    instantiations : 'dict[str,str|None]' = {"L": "Hello World", "S": "world"}
+    assert endswith_i("L", "S", instantiations, is_negated=False)
+def test_endswith_case_insensitive_false():
+    instantiations : 'dict[str,str|None]' = {"L": "Hello World", "S": "HELLO"}
+    assert not endswith_i("L", "S", instantiations, is_negated=False)
 
 # Test cases for lt_leq_gt_geq_eq_wrapper
 # this is a nice candidate for property based
@@ -414,6 +427,12 @@ def test_contains_negated_4():
     instantiations : 'dict[str,str|None]' = {"L": None, "S": None}
     with pytest.raises(UnsafeError):
         contains("L", "S", instantiations, is_negated=True)
+def test_contains_case_insensitive():
+    instantiations : 'dict[str,str|None]' = {"L": "Hello World", "S": "world"}
+    assert contains_i("L", "S", instantiations, is_negated=False)
+def test_contains_case_insensitive_false():
+    instantiations : 'dict[str,str|None]' = {"L": "Hello World", "S": "HELLOO"}
+    assert not contains_i("L", "S", instantiations, is_negated=False)
 
 # Test cases for the 'strip' predicate
 def test_strip_0():

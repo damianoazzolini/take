@@ -165,6 +165,7 @@ def apply_sequence_commands(args : argparse.Namespace) -> 'list[str]':
     c_list : 'list[Command]' = [Command(cmd) for cmd in args.command]
     count_print : int = 0
     stop_loop : bool = False
+    context : 'list[str]' = []
 
     for filename in args.filename:
         if stop_loop:

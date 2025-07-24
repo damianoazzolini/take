@@ -5,7 +5,7 @@ That is, there are some built in predicates that applies operations on lines.
 
 Each predicate takes as input at least one variable/constant with a string (the considered line) and unifies a variable with the result of the operation or succeeds/fails.
 
-Why? Because I often have to write the same python script to scan log files with a lot of text and extract results having a specific structure.
+Why? Because I often have to write the same Python script to scan log files with a lot of text and extract results having a specific structure.
 
 ## Quick Examples
 Assume you have a file called `log.txt` which contains something like
@@ -103,7 +103,9 @@ Available predicates:
 - `line(L)`: unifies `L` with the current file line. **Note: each command must have `line/1` in it**
 - `print(L)/println(L)`: print the content of `L` (`println/1` also adds a newline)
 - `startswith(L,P)`: true if `L` starts with `P`
+- `startswith_i(L,P)`: true if `L` starts with `P`, case insensitive
 - `endswith(L,P)`: as `startswith/2`, but checks ends of the string
+- `endswith_i(L,P)`: as `startswith/2`, but checks ends of the string, case insensitive
 - `length(L,N)`: true if `L` is of length `N`
 - `lt(L,N)`: true if `L < N`
 - `gt(L,N)`: true if `L > N`
@@ -115,6 +117,7 @@ Available predicates:
 - `split_select(L,V,P,L1)`: splits `L` at each occurrence of `V` then `L1` contains the split at position `P`, starting from 0. Fails if `P` is larger than the number of splits. Special split delimiters: `V = space` and `V = tab`
 - `replace(L,A,B,L1)`: replace the occurrences of the string `A` in L with `B` and unifies `L1` with the results
 - `contains(L,A)`: true if the string unified with `L` contains the string unified with `A`, false otherwise
+- `contains_i(L,A)`: true if the string unified with `L` contains the string unified with `A`, false otherwise, case insensitive
 - `strip(L,L1)`: removes leading and trailing whitespaces from `L` and unifies `L1` with the result
 - `time_to_seconds(L,L1)`: converts a bash time of the form AmBs into seconds (example: `L = 2m42.765s` into `L1 = 162.765`)
 

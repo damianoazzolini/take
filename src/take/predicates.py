@@ -5,7 +5,9 @@ PREDICATES = {
     "println": 1,
     # arity 2
     "startswith": 2,
+    "startswith_i": 2,
     "endswith": 2,
+    "endswith_i": 2,
     "length": 2,
     "lt": 2,
     "leq": 2,
@@ -16,6 +18,7 @@ PREDICATES = {
     "capitalize": 2,
     "line_number": 2,
     "contains": 2,
+    "contains_i": 2,
     "strip": 2,
     "time_to_seconds": 2,
     # arity 4
@@ -155,6 +158,17 @@ def startswith(l : str, s : str, instantiations : 'dict[str,str|None]', is_negat
     """
     return _starts_end_with(True, l, s, instantiations, is_negated)
 
+def startswith_i(l : str, s : str, instantiations : 'dict[str,str|None]', is_negated : bool) -> bool:
+    """
+    Input:
+    - l: a variable representing a string
+    - s: a string to check if it is a prefix of the string in l
+    - instantiations: a dictionary that maps variable names to their string values
+    Returns:
+    - True if the string in l1 starts with s, case insensitive, False otherwise
+    """
+    return _starts_end_with(True, l, s, instantiations, is_negated, False)
+
 def endswith(l : str, s : str, instantiations : 'dict[str,str|None]', is_negated : bool) -> bool:
     """
     Input:
@@ -166,7 +180,18 @@ def endswith(l : str, s : str, instantiations : 'dict[str,str|None]', is_negated
     """
     return _starts_end_with(False, l, s, instantiations, is_negated)
 
-def _starts_end_with(t : bool, l : str, s : str, instantiations : 'dict[str,str|None]', is_negated : bool) -> bool:
+def endswith_i(l : str, s : str, instantiations : 'dict[str,str|None]', is_negated : bool) -> bool:
+    """
+    Input:
+    - l: a variable representing a string
+    - s: a string to check if it is a suffix of the string in l
+    - instantiations: a dictionary that maps variable names to their string values
+    Returns:
+    - True if the string in l1 ends with s, case insensitive, False otherwise
+    """
+    return _starts_end_with(False, l, s, instantiations, is_negated, False)
+
+def _starts_end_with(t : bool, l : str, s : str, instantiations : 'dict[str,str|None]', is_negated : bool, case_sensitive : bool = True) -> bool:
     """
     Wrapper. t = True for startswith, False for endswith.
     """
@@ -186,7 +211,10 @@ def _starts_end_with(t : bool, l : str, s : str, instantiations : 'dict[str,str|
         l = get_constant(l)
 
     # print(f"Checking if {l} {'starts' if t else 'ends'} with {s}")
-    return ((t and l.startswith(s)) or (not t and l.endswith(s))) ^ is_negated
+    if case_sensitive:
+        return ((t and l.startswith(s)) or (not t and l.endswith(s))) ^ is_negated
+
+    return ((t and l.lower().startswith(s.lower())) or (not t and l.lower().endswith(s.lower()))) ^ is_negated
 
 def lt(n : str, v : str, instantiations : 'dict[str,str|None]', is_negated : bool) -> bool:
     """
@@ -412,7 +440,7 @@ def line_number(l: str, n: str, current_idx : int, instantiations: 'dict[str,str
     return (get_integer(n) == current_idx + 1) ^ is_negated
 
 
-def contains(l: str, s: str, instantiations: 'dict[str,str|None]', is_negated : bool) -> bool:
+def contains(l: str, s: str, instantiations: 'dict[str,str|None]', is_negated : bool, case_sensitive: bool = True) -> bool:
     """
     Check if the string l contains the substring s.
     If l is a variable, get its value from the instantiations dictionary.
@@ -431,7 +459,18 @@ def contains(l: str, s: str, instantiations: 'dict[str,str|None]', is_negated : 
     else:
         s = get_constant(s)
     
-    return (s in l) ^ is_negated
+    if case_sensitive:
+        return (s in l) ^ is_negated
+    return (s.lower() in l.lower()) ^ is_negated
+
+
+def contains_i(l: str, s: str, instantiations: 'dict[str,str|None]', is_negated : bool) -> bool:
+    """
+    Check if the string l contains the substring s, case insensitive.
+    If l is a variable, get its value from the instantiations dictionary.
+    If s is a variable, get its value from the instantiations dictionary.
+    """
+    return contains(l, s, instantiations, is_negated, case_sensitive=False)
 
 
 def strip(l : str, l1 : str, instantiations : 'dict[str,str|None]', is_negated : bool) -> bool:

@@ -5,7 +5,9 @@ def parse_arguments():
 Available predicates (name and arity, i.e., number of arguments):
 - line/2
 - startswith/2
+- startswith_i/2
 - endswith/2
+- endswith_i/2
 - length/2
 - lt/2
 - gt/2
@@ -15,6 +17,7 @@ Available predicates (name and arity, i.e., number of arguments):
 - capitalize/2
 - strip/2
 - contains/2
+- contains_i/2
 - time_to_seconds/2
 - split_select/4
 - replace/4
