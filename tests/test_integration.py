@@ -144,6 +144,13 @@ def test_integration_sw_sps_st_max_count():
     os.unlink(filename)
     assert res.strip().replace("\n","").replace(" ","") == "78910"
 
+def test_integration_sw_sps_st_max_count_double_print():
+    command = ["line(L), startswith(L,size), split_select(L,space,1,S), print(S), println(S)"]
+    filename = get_temporary_file(CONTENT)
+    res = get_result(command, filename, max_count=4)
+    os.unlink(filename)
+    assert res.strip().replace("\n","").replace(" ","") == "7788991010"
+
 def test_integration_sw_sps_st_max_count_filename():
     command = ["line(L), startswith(L,size), split_select(L,space,1,S), println(S)"]
     filename = get_temporary_file(CONTENT)

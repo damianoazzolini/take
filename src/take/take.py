@@ -41,16 +41,17 @@ class Command:
         self.command_line = command_line
         self.literals : 'list[Literal]' = []
         self.variables_dict : 'dict[str,str|None]' = {} # to store variable instantiations
+        self.colored_output = colored_output
         self.parse()
-        self.check_negation(colored_output)
+        self.check_negation()
 
-    def check_negation(self, colored : bool) -> None:
+    def check_negation(self) -> None:
         """
         Check if the command line contains negated literals.
         """
         for literal in self.literals:
             if literal.is_negated and literal.name in ["line", "print", "println"]:
-                if colored:
+                if self.colored_output:
                     print(f"{bcolors.WARNING}[WARNING]{bcolors.ENDC}:", end=' ')
                 else:
                     print("[WARNING]:", end=' ')
@@ -151,7 +152,11 @@ class Command:
         # check singleton variables (i.e., variables appearing only once in the command)
         for var in self.variables_dict:
             if sum(var in lit.args for lit in self.literals) == 1:
-                print(f"Warning: variable '{var}' appears only once in the command")
+                if self.colored_output:
+                    print(f"{bcolors.WARNING}[WARNING]{bcolors.ENDC}:", end=' ')
+                else:
+                    print("[WARNING]:", end=' ')
+                print(f"variable '{var}' appears only once in the command.")
 
 
 def plot(data : 'list[str]') -> None:
@@ -176,7 +181,8 @@ def apply_sequence_commands(args : argparse.Namespace) -> 'list[str]':
     """
     aggregate_lines : 'list[str]' = []
     c_list : 'list[Command]' = [Command(cmd, colored_output=not args.uncolored) for cmd in args.command]
-    count_print : int = 0
+    count_processed : int = 0
+    processed : bool = False
     stop_loop : bool = False
     context : 'list[str]' = []
     printed_warning : bool = False
@@ -186,15 +192,17 @@ def apply_sequence_commands(args : argparse.Namespace) -> 'list[str]':
             break
         with open(filename, "r") as fp:
             for idx, current_line in enumerate(fp):
-                if stop_loop:
+                if processed:
+                    count_processed += 1
+                processed = False
+                if count_processed >= args.max_count and args.max_count > 0:
+                    stop_loop = True
                     break
                 current_line = current_line.rstrip('\n')
                 # apply the corresponding predicates to the line
                 # print(f"Processing line: {current_line}")
                 # clean up the variables dictionary
                 for c in c_list:
-                    if stop_loop:
-                        break
                     c.variables_dict = {var: None for var in c.variables_dict}
                     for command in c.literals:
                         # print(f"Processing command: {command}")
@@ -207,10 +215,7 @@ def apply_sequence_commands(args : argparse.Namespace) -> 'list[str]':
                         if command.name == "line":
                             res = line(current_line, command.args[0], c.variables_dict)
                         elif command.name == "print" or command.name == "println":
-                            if count_print >= args.max_count and args.max_count > 0:
-                                stop_loop = True
-                                break
-                            count_print += 1
+                            processed = True
                             if not args.suppress_output:
                                 if args.with_filename:
                                     if not args.uncolored:
@@ -251,7 +256,11 @@ def apply_aggregation_function(aggregate_lines : 'list[str]', args : argparse.Na
     for aggregate in args.aggregate:
         prefix = f"[{aggregate}] "
         if len(aggregate_lines) == 0:
-            print("[Warning] No lines to aggregate")
+            if colored:
+                print(f"{bcolors.WARNING}[WARNING]{bcolors.ENDC}:", end=' ')
+            else:
+                print("[WARNING]:", end=' ')
+            print("No lines to aggregate")
             return []
         if aggregate == "count":
             print(f"{prefix}{len(aggregate_lines)}")
