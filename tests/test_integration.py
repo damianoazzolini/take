@@ -88,7 +88,8 @@ def get_result(
         aggregate=aggregate,
         plot=False,
         max_count=max_count,
-        with_filename=with_filename
+        with_filename=with_filename,
+        uncolored=True
     )
     with io.StringIO() as buf, redirect_stdout(buf):
         loop_process(args)

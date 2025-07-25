@@ -37,12 +37,25 @@ class Literal:
         return self.__str__()
 
 class Command:
-    def __init__(self, command_line : str) -> None:
+    def __init__(self, command_line : str, colored_output : bool = True) -> None:
         self.command_line = command_line
         self.literals : 'list[Literal]' = []
         self.variables_dict : 'dict[str,str|None]' = {} # to store variable instantiations
         self.parse()
-    
+        self.check_negation(colored_output)
+
+    def check_negation(self, colored : bool) -> None:
+        """
+        Check if the command line contains negated literals.
+        """
+        for literal in self.literals:
+            if literal.is_negated and literal.name in ["line", "print", "println"]:
+                if colored:
+                    print(f"{bcolors.WARNING}[WARNING]{bcolors.ENDC}:", end=' ')
+                else:
+                    print("[WARNING]:", end=' ')
+                print(f"the '{literal.name}' predicate cannot be negated, ignoring the negation.")
+
     def split_by_commas(self, s : str):
         in_quotes = False
         current : str = ""
@@ -162,10 +175,11 @@ def apply_sequence_commands(args : argparse.Namespace) -> 'list[str]':
     This function is a placeholder for future implementation.
     """
     aggregate_lines : 'list[str]' = []
-    c_list : 'list[Command]' = [Command(cmd) for cmd in args.command]
+    c_list : 'list[Command]' = [Command(cmd, colored_output=not args.uncolored) for cmd in args.command]
     count_print : int = 0
     stop_loop : bool = False
     context : 'list[str]' = []
+    printed_warning : bool = False
 
     for filename in args.filename:
         if stop_loop:
@@ -191,19 +205,18 @@ def apply_sequence_commands(args : argparse.Namespace) -> 'list[str]':
                         #     res = fn(line, command.args[0], c.variables_dict)
                         res = False
                         if command.name == "line":
-                            if command.is_negated:
-                                print("Warning: the 'line' predicate cannot be negated, ignoring the negation")
                             res = line(current_line, command.args[0], c.variables_dict)
                         elif command.name == "print" or command.name == "println":
                             if count_print >= args.max_count and args.max_count > 0:
                                 stop_loop = True
                                 break
                             count_print += 1
-                            if command.is_negated:
-                                print(f"Warning: the '{command.name}' predicate cannot be negated, ignoring the negation")
                             if not args.suppress_output:
                                 if args.with_filename:
-                                    print(f"{filename}:", end='')
+                                    if not args.uncolored:
+                                        print(f"{bcolors.PURPLE}{filename}:{bcolors.ENDC}", end='')
+                                    else:
+                                        print(f"{filename}:", end='')
                                 res = print_line(command.args[0], c.variables_dict, with_newline=command.name == "println")
                             if args.aggregate:
                                 with io.StringIO() as buf, redirect_stdout(buf):

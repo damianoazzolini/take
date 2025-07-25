@@ -35,6 +35,7 @@ Examples:
     parser.add_argument("-p", "--plot", action="store_true", help="Plot the results")
     parser.add_argument("-m", "--max-count", type=int, default=0, help="Maximum number of lines to process overall (0 for no limit)")
     parser.add_argument("-H", "--with-filename", action="store_true", help="Print the filename in the output lines")
+    parser.add_argument("--uncolored", action="store_true", help="Disable colored output")
     parser.add_argument("-a", "--aggregate", action="append", choices=[
             "count",
             "sum",

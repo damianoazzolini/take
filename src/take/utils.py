@@ -1,3 +1,14 @@
+class bcolors:
+    FAIL = '\033[91m'
+    GREEN = '\033[92m'
+    WARNING = '\033[93m'
+    BLUE = '\033[94m'
+    PURPLE = '\033[95m'
+    CYAN = '\033[96m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    ENDC = '\033[0m'
+
 def is_int(s : str) -> bool:
     """
     Check if a string can be converted to an integer.
