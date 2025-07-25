@@ -223,10 +223,10 @@ def apply_sequence_commands(args : argparse.Namespace) -> 'list[str]':
                                     else:
                                         print(f"{filename}:", end='')
                                 res = print_line(command.args[0], c.variables_dict, with_newline=command.name == "println")
-                            if args.aggregate:
-                                with io.StringIO() as buf, redirect_stdout(buf):
-                                    print_line(command.args[0], c.variables_dict, with_newline=command.name == "println")
-                                    aggregate_lines.append(buf.getvalue())
+                            # if args.aggregate:
+                            with io.StringIO() as buf, redirect_stdout(buf):
+                                print_line(command.args[0], c.variables_dict, with_newline=command.name == "println")
+                                aggregate_lines.append(buf.getvalue())
                         elif command.name == "line_number":
                             res = line_number(command.args[0], command.args[1], idx, c.variables_dict, command.is_negated)
                         # arity 2 predicates
@@ -254,7 +254,10 @@ def apply_aggregation_function(aggregate_lines : 'list[str]', args : argparse.Na
     # check aggregation function
     obtained_data : 'list[str] | list[float]' = []
     for aggregate in args.aggregate:
-        prefix = f"[{aggregate}] "
+        if args.uncolored:
+            prefix = f"[{aggregate}] "
+        else:
+            prefix = f"{bcolors.GREEN}[{aggregate}]{bcolors.ENDC} "
         if len(aggregate_lines) == 0:
             if colored:
                 print(f"{bcolors.WARNING}[WARNING]{bcolors.ENDC}:", end=' ')
@@ -322,12 +325,18 @@ def loop_process(args : 'argparse.Namespace'):
     # check aggregation function
     if args.aggregate:
         res = apply_aggregation_function(aggregate_lines, args)
-    
+    else:
+        res = aggregate_lines
+        
     if args.plot:
         if len(res) > 0:
             plot(res)
         else:
-            print("Waring: No data to plot.")
+            if args.uncolored:
+                print("[WARNING]:", end=' ')
+            else:
+                print(f"{bcolors.WARNING}[WARNING]{bcolors.ENDC}:", end=' ')
+            print("no data to plot.")
 
 
 def take_main():
