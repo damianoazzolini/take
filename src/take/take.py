@@ -3,6 +3,7 @@ import argparse
 import io
 import matplotlib.pyplot as plt
 import math
+import os
 import re
 
 from contextlib import redirect_stdout
@@ -187,62 +188,83 @@ def apply_sequence_commands(args : argparse.Namespace) -> 'list[str]':
     context : 'list[str]' = []
     printed_warning : bool = False
 
+    # explores recursively the directories if the -r option is set
+    if args.recursive:
+        files = []
+        for f in args.filename:
+            if os.path.isdir(f):
+                # if it's a directory, get all files in it
+                w = os.walk(f)
+                for root, _, filenames in w:
+                    for filename in filenames:
+                        files.append(os.path.join(root, filename))
+            elif os.path.isfile(f):
+                files.append(f)
+        args.filename = files
+
     for filename in args.filename:
         if stop_loop:
             break
-        with open(filename, "r") as fp:
-            for idx, current_line in enumerate(fp):
-                if processed:
-                    count_processed += 1
-                processed = False
-                if count_processed >= args.max_count and args.max_count > 0:
-                    stop_loop = True
-                    break
-                current_line = current_line.rstrip('\n')
-                # apply the corresponding predicates to the line
-                # print(f"Processing line: {current_line}")
-                # clean up the variables dictionary
-                for c in c_list:
-                    c.variables_dict = {var: None for var in c.variables_dict}
-                    for command in c.literals:
-                        # print(f"Processing command: {command}")
-                        # print(c.variables_dict)
-                        # arity 1 predicates
-                        # if command.name in ["print", "line"]:
-                        #     fn = getattr(f"{command.name}", f"{command.name}")
-                        #     res = fn(line, command.args[0], c.variables_dict)
-                        res = False
-                        if command.name == "line":
-                            res = line(current_line, command.args[0], c.variables_dict)
-                        elif command.name == "print" or command.name == "println":
-                            processed = True
-                            if not args.suppress_output:
-                                if args.with_filename:
-                                    if not args.uncolored:
-                                        print(f"{bcolors.PURPLE}{filename}:{bcolors.ENDC}", end='')
-                                    else:
-                                        print(f"{filename}:", end='')
-                                res = print_line(command.args[0], c.variables_dict, with_newline=command.name == "println")
-                            # if args.aggregate:
-                            with io.StringIO() as buf, redirect_stdout(buf):
-                                print_line(command.args[0], c.variables_dict, with_newline=command.name == "println")
-                                aggregate_lines.append(buf.getvalue())
-                        elif command.name == "line_number":
-                            res = line_number(command.args[0], command.args[1], idx, c.variables_dict, command.is_negated)
-                        # arity 2 predicates
-                        # elif command.name in ["startswith","endswith","length","lt","leq","gt"]:
-                        elif command.name in [k for k in PREDICATES if PREDICATES[k] == 2]:
-                            fn =  globals()[command.name]
-                            res = fn(command.args[0], command.args[1], c.variables_dict, command.is_negated)
-                        elif command.name in [k for k in PREDICATES if PREDICATES[k] == 3]:
-                            fn =  globals()[command.name]
-                            res = fn(command.args[0], command.args[1], command.args[2], c.variables_dict, command.is_negated)
-                        elif command.name in [k for k in PREDICATES if PREDICATES[k] == 4]:
-                            fn =  globals()[command.name]
-                            res = fn(command.args[0], command.args[1], command.args[2], command.args[3], c.variables_dict, command.is_negated)
-                        
-                        if not res:
-                            break
+        try:
+            with open(filename, "r") as fp:
+                for idx, current_line in enumerate(fp):
+                    if processed:
+                        count_processed += 1
+                    processed = False
+                    if count_processed >= args.max_count and args.max_count > 0:
+                        stop_loop = True
+                        break
+                    current_line = current_line.rstrip('\n')
+                    # apply the corresponding predicates to the line
+                    # print(f"Processing line: {current_line}")
+                    # clean up the variables dictionary
+                    for c in c_list:
+                        c.variables_dict = {var: None for var in c.variables_dict}
+                        for command in c.literals:
+                            # print(f"Processing command: {command}")
+                            # print(c.variables_dict)
+                            # arity 1 predicates
+                            # if command.name in ["print", "line"]:
+                            #     fn = getattr(f"{command.name}", f"{command.name}")
+                            #     res = fn(line, command.args[0], c.variables_dict)
+                            res = False
+                            if command.name == "line":
+                                res = line(current_line, command.args[0], c.variables_dict)
+                            elif command.name == "print" or command.name == "println":
+                                processed = True
+                                if not args.suppress_output:
+                                    if args.with_filename:
+                                        if not args.uncolored:
+                                            print(f"{bcolors.PURPLE}{filename}:{bcolors.ENDC}", end='')
+                                        else:
+                                            print(f"{filename}:", end='')
+                                    res = print_line(command.args[0], c.variables_dict, with_newline=command.name == "println")
+                                # if args.aggregate:
+                                with io.StringIO() as buf, redirect_stdout(buf):
+                                    print_line(command.args[0], c.variables_dict, with_newline=command.name == "println")
+                                    aggregate_lines.append(buf.getvalue())
+                            elif command.name == "line_number":
+                                res = line_number(command.args[0], command.args[1], idx, c.variables_dict, command.is_negated)
+                            # arity 2 predicates
+                            # elif command.name in ["startswith","endswith","length","lt","leq","gt"]:
+                            elif command.name in [k for k in PREDICATES if PREDICATES[k] == 2]:
+                                fn =  globals()[command.name]
+                                res = fn(command.args[0], command.args[1], c.variables_dict, command.is_negated)
+                            elif command.name in [k for k in PREDICATES if PREDICATES[k] == 3]:
+                                fn =  globals()[command.name]
+                                res = fn(command.args[0], command.args[1], command.args[2], c.variables_dict, command.is_negated)
+                            elif command.name in [k for k in PREDICATES if PREDICATES[k] == 4]:
+                                fn =  globals()[command.name]
+                                res = fn(command.args[0], command.args[1], command.args[2], command.args[3], c.variables_dict, command.is_negated)
+                            
+                            if not res:
+                                break
+        except Exception:
+            if args.uncolored:
+                print("[ERROR]", end=' ')
+            else:
+                print(f"{bcolors.ERROR}[ERROR]{bcolors.ENDC}", end=' ')
+            print(f"processing file {filename}")
 
     return aggregate_lines    
 

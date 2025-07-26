@@ -89,7 +89,8 @@ def get_result(
         plot=False,
         max_count=max_count,
         with_filename=with_filename,
-        uncolored=True
+        uncolored=True,
+        recursive=False
     )
     with io.StringIO() as buf, redirect_stdout(buf):
         loop_process(args)
