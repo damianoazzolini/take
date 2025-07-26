@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import math
 import os
 import re
+import time
 
 from contextlib import redirect_stdout
 
@@ -342,14 +343,20 @@ def loop_process(args : 'argparse.Namespace'):
     """
     Main loop.
     """
+    start_time : float = time.time()
     aggregate_lines : 'list[str]' = apply_sequence_commands(args)
-
+    end_time : float = time.time()
+    elapsed_time_file_analysis : float = end_time - start_time
+    
     # check aggregation function
     if args.aggregate:
         res = apply_aggregation_function(aggregate_lines, args)
     else:
         res = aggregate_lines
-        
+
+    if args.stats:
+        print(f"Elapsed time for file analysis: {elapsed_time_file_analysis:.2f} s.")
+
     if args.plot:
         if len(res) > 0:
             plot(res)
