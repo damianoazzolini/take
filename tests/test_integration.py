@@ -90,7 +90,8 @@ def get_result(
         max_count=max_count,
         with_filename=with_filename,
         uncolored=True,
-        recursive=False
+        recursive=False,
+        stats=False
     )
     with io.StringIO() as buf, redirect_stdout(buf):
         loop_process(args)
