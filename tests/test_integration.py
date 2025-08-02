@@ -1,10 +1,13 @@
 import io
 from contextlib import redirect_stdout
+from hypothesis import given, settings, strategies
 from tempfile import NamedTemporaryFile
 import os
 
 
 from src.take.take import *
+from src.take.predicates import PREDICATES
+import random
 
 CONTENT = """
 test
@@ -161,3 +164,38 @@ def test_integration_sw_sps_st_max_count_filename():
     assert res.strip().replace("\n","").replace(" ","") == f"{filename}:7{filename}:8{filename}:9{filename}:10"
 
 
+def generate_random_command() -> str:
+    available_predicates = [(k,v) for k,v in PREDICATES.items()]
+    command_len = random.randint(1, 10)
+    len_args = random.randint(4, 5)
+    args = [f"L{i}" for i in range(len_args)]
+
+    predicates_list : 'list[str]' = []
+    n_predicates = len(available_predicates) 
+
+    for i in range(command_len):
+        idx = random.randint(0, len(available_predicates) - 1)
+        predicate_name = available_predicates[idx][0]
+        predicate_arity = available_predicates[idx][1]
+        current_arguments = random.sample(args, predicate_arity)
+        predicates_list.append(f"{predicate_name}({', '.join(current_arguments)})")
+    predicates_list.insert(0, f"line({random.choice(args)})")
+
+    return f"{', '.join(predicates_list)}"
+
+@given(strategies.integers(), strategies.booleans())
+@settings(max_examples=1_000)
+def test_random_command(seed : int, aggregator: bool):
+    random.seed(seed)
+    command = generate_random_command()
+    filename = get_temporary_file(CONTENT)
+    try:
+        if aggregator:
+            aggregate = random.sample(["count", "sum", "product", "average", "min", "max", "concat", "unique", "first", "last", "sort_ascending", "sort_descending"], 1)
+        else:
+            aggregate = []
+        res = get_result([command], filename, aggregate=aggregate)
+    except Exception as e:
+        assert False
+    finally:
+        os.unlink(filename)
