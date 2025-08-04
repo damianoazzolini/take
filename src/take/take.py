@@ -260,12 +260,15 @@ def apply_sequence_commands(args : argparse.Namespace) -> 'list[str]':
                             
                             if not res:
                                 break
-        except Exception:
+        except Exception as e:
             if args.uncolored:
                 print("[ERROR]", end=' ')
             else:
                 print(f"{bcolors.ERROR}[ERROR]{bcolors.ENDC}", end=' ')
             print(f"processing file {filename}")
+            # print(f"Command: {command}")
+            if args.debug:
+                print(f"Error: {e}")
 
     return aggregate_lines    
 
@@ -282,10 +285,10 @@ def apply_aggregation_function(aggregate_lines : 'list[str]', args : argparse.Na
         else:
             prefix = f"{bcolors.GREEN}[{aggregate}]{bcolors.ENDC} "
         if len(aggregate_lines) == 0:
-            if colored:
-                print(f"{bcolors.WARNING}[WARNING]{bcolors.ENDC}:", end=' ')
-            else:
+            if args.uncolored:
                 print("[WARNING]:", end=' ')
+            else:
+                print(f"{bcolors.WARNING}[WARNING]{bcolors.ENDC}:", end=' ')
             print("No lines to aggregate")
             return []
         if aggregate == "count":

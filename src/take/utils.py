@@ -37,7 +37,6 @@ def wrap_sort(aggregate_lines : 'list[tuple[str,str]]', reverse : bool) -> 'list
     It returns a list of strings that can be sorted.
     """
     aggregate_lines = [(line[0], line[1].rstrip('\n')) for line in aggregate_lines]
-    # aggregate_lines = [line.rstrip('\n') for line in aggregate_lines]
     new_data : 'list[tuple[str,int|float]]' = []
     all_numbers : bool = True
     for name, v in aggregate_lines:

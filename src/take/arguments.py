@@ -38,6 +38,7 @@ Examples:
     parser.add_argument("-H", "--with-filename", action="store_true", help="Print the filename in the output lines")
     parser.add_argument("--uncolored", action="store_true", help="Disable colored output")
     parser.add_argument("--stats", action="store_true", help="Show statistics about the processed files")
+    parser.add_argument("--debug", action="store_true", help="Show debug information")
     parser.add_argument("-a", "--aggregate", action="append", choices=[
             "count",
             "sum",
