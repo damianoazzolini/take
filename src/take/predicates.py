@@ -140,7 +140,8 @@ def print_line(l : str, instantiations : 'dict[str,str|None]', with_newline : bo
     Returns True if the variable exists and is printed, False otherwise.
     """
     if is_variable(l):
-        print(instantiations[l], end="\n" if with_newline else "")
+        if instantiations[l] is not None:
+            print(instantiations[l], end="\n" if with_newline else "")
     else:
         l = get_constant(l)
         print(l, end="\n" if with_newline else "")
