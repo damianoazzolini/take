@@ -94,7 +94,8 @@ def get_result(
         with_filename=with_filename,
         uncolored=True,
         recursive=False,
-        stats=False
+        stats=False,
+        debug=False
     )
     with io.StringIO() as buf, redirect_stdout(buf):
         loop_process(args)
@@ -184,18 +185,19 @@ def generate_random_command() -> str:
     return f"{', '.join(predicates_list)}"
 
 @given(strategies.integers(), strategies.booleans())
-@settings(max_examples=1_000)
+@settings(max_examples=10_000)
 def test_random_command(seed : int, aggregator: bool):
     random.seed(seed)
     command = generate_random_command()
     filename = get_temporary_file(CONTENT)
+    if aggregator:
+        aggregate = random.sample(["count", "sum", "product", "average", "min", "max", "concat", "unique", "first", "last", "sort_ascending", "sort_descending"], 1)
+    else:
+        aggregate = []
     try:
-        if aggregator:
-            aggregate = random.sample(["count", "sum", "product", "average", "min", "max", "concat", "unique", "first", "last", "sort_ascending", "sort_descending"], 1)
-        else:
-            aggregate = []
         res = get_result([command], filename, aggregate=aggregate)
+        # assert True
     except Exception as e:
-        assert False
+        assert False, command + " " + str(aggregate) + "\n" + str(e)
     finally:
         os.unlink(filename)
