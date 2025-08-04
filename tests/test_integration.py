@@ -169,7 +169,19 @@ def generate_random_command() -> str:
     available_predicates = [(k,v) for k,v in PREDICATES.items()]
     command_len = random.randint(1, 10)
     len_args = random.randint(4, 5)
-    args = [f"L{i}" for i in range(len_args)]
+    args = []
+    for i in range(len_args):
+        # lowercase, uppercase, string, or digit
+        arg_type = random.choice(["lowercase", "uppercase", "string", "digit"])
+        if arg_type == "lowercase":
+            args.append(f"l{i}")
+        elif arg_type == "uppercase":
+            args.append(f"L{i}")
+        elif arg_type == "string":
+            args.append(f"'L{i}'")
+        elif arg_type == "digit":
+            args.append(f"{random.randint(0, 9)}")
+    # args = [f"L{i}" for i in range(len_args)]
 
     predicates_list : 'list[str]' = []
     n_predicates = len(available_predicates) 
@@ -183,6 +195,7 @@ def generate_random_command() -> str:
     predicates_list.insert(0, f"line({random.choice(args)})")
 
     return f"{', '.join(predicates_list)}"
+
 
 @given(strategies.integers(), strategies.booleans())
 @settings(max_examples=10_000)
