@@ -21,11 +21,14 @@ PREDICATES = {
     "contains_i": 2,
     "strip": 2,
     "time_to_seconds": 2,
+    "abs": 2,
     # arity 3
     "add": 3,
     "sub": 3,
     "mul": 3,
     "div": 3,
+    "pow": 3,
+    "mod": 3,
     # arity 4
     "split_select": 4,
     "replace": 4
@@ -541,6 +544,31 @@ def time_to_seconds(l : str, l1 : str, instantiations: 'dict[str,str|None]', is_
     return (total_seconds == get_number(l1)) ^ is_negated
 
 
+def abs(l: str, l1: str, instantiations: 'dict[str,str|None]', is_negated : bool) -> bool:
+    """
+    Checks if the absolute value of l is equal to the absolute value of l1.
+    """
+    if is_negated:
+        check_safe_negation([l, l1], instantiations, "abs")
+
+    if is_variable(l):
+        l = get_instantiation(l, instantiations)
+    else:
+        l = get_constant(l)
+
+    # abs by hand
+    n = get_number(l)
+    result = n if n < 0 else n
+
+    if is_variable(l1):
+        if not is_instantiated(l1, instantiations):
+            instantiations[l1] = str(result)
+            return True
+        return (instantiations[l1] == str(result)) ^ is_negated
+
+    l1 = get_constant(l1)
+    return (result == get_number(l1)) ^ is_negated
+
 def add(l : str, v: str, l1: str, instantiations: 'dict[str,str|None]', is_negated : bool) -> bool:
     return _wrap_arithmetic("add", l, v, l1, instantiations, is_negated)
 def sub(l : str, v: str, l1: str, instantiations: 'dict[str,str|None]', is_negated : bool) -> bool:
@@ -549,6 +577,10 @@ def mul(l : str, v: str, l1: str, instantiations: 'dict[str,str|None]', is_negat
     return _wrap_arithmetic("mul", l, v, l1, instantiations, is_negated)
 def div(l : str, v: str, l1: str, instantiations: 'dict[str,str|None]', is_negated : bool) -> bool:
     return _wrap_arithmetic("div", l, v, l1, instantiations, is_negated)
+def pow(l : str, v: str, l1: str, instantiations: 'dict[str,str|None]', is_negated : bool) -> bool:
+    return _wrap_arithmetic("pow", l, v, l1, instantiations, is_negated)
+def mod(l : str, v: str, l1: str, instantiations: 'dict[str,str|None]', is_negated : bool) -> bool:
+    return _wrap_arithmetic("mod", l, v, l1, instantiations, is_negated)
 
 def _wrap_arithmetic(op: str, l: str, v: str, l1: str, instantiations: 'dict[str,str|None]', is_negated: bool) -> bool:
     """
@@ -576,6 +608,10 @@ def _wrap_arithmetic(op: str, l: str, v: str, l1: str, instantiations: 'dict[str
         result = get_number(l) * get_number(v)
     elif op == "div":
         result = get_number(l) / get_number(v)
+    elif op == "pow":
+        result = get_number(l) ** get_number(v)
+    elif op == "mod":
+        result = get_number(l) % get_number(v)
     else:
         raise ValueError(f"Unknown operation: {op}")
 

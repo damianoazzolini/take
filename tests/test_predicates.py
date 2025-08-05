@@ -5,33 +5,54 @@ import sys
 from src.take.predicates import *
 
 # Test cases for the `startswith` predicate
-def test_startswith_0():
-    instantiations : 'dict[str,str|None]' = {"L1": "v0,2,6", "L2": None}
-    result = startswith("L1", "v", instantiations, is_negated=False)
-    assert result
-def test_startswith_1():
-    instantiations : 'dict[str,str|None]' = {"L1": "v0,2,6", "L2": None}
-    result = startswith("L1", "b", instantiations, is_negated=False)
-    assert not result
-def test_startswith_2():
-    instantiations : 'dict[str,str|None]' = {"L1": "v0,2,6", "L2": "v0"}
-    result = startswith("L1", "L2", instantiations, is_negated=False)
-    assert result
-def test_startswith_3():
-    instantiations : 'dict[str,str|None]' = {"L1": "v0,2,6", "L2": None}
-    with pytest.raises(InstantiationError):
-        startswith("L1", "L2", instantiations, is_negated=False)
-def test_startswith_4():
-    instantiations : 'dict[str,str|None]' = {"L1": "v0,2,6", "L2": "v0"}
-    assert not startswith("l1", "L2", instantiations, is_negated=False)
-def test_startswith_i_1():
-    instantiations : 'dict[str,str|None]' = {"L1": "Hello World", "L2": "hello"}
-    result = startswith_i("L1", "L2", instantiations, is_negated=False)
-    assert result
-def test_startswith_i_2():
-    instantiations : 'dict[str,str|None]' = {"L1": "Hello World", "L2": "WORLD"}
-    result = startswith_i("L1", "L2", instantiations, is_negated=False)
-    assert not result
+@pytest.mark.parametrize("v0, v1, instantiations, is_negated, expected_result, should_rise, case_insensitive", [
+    # startswith tests
+    ("L1", "v", {"L1": "v0,2,6", "L2": None}, False, True, False, False),
+    ("L1", "b", {"L1": "v0,2,6", "L2": None}, False, False, False, False),
+    ("L1", "L2", {"L1": "v0,2,6", "L2": "v0"}, False, True, False, False),
+    ("L1", "L2", {"L1": "v0,2,6", "L2": None}, False, None, True, False),
+    ("l1", "L2", {"L1": "v0,2,6", "L2": "v0"}, False, False, False, False),
+    # startswith case insensitive tests
+    ("L1", "L2", {"L1": "Hello World", "L2": "hello"}, False, True, False, True),
+    ("L1", "L2", {"L1": "Hello World", "L2": "WORLD"}, False, False, False, True)
+])
+def test_startswith(v0 : str, v1 : str, instantiations : 'dict[str,str|None]', is_negated : bool, expected_result : bool, should_rise : bool, case_insensitive : bool):
+    fn = startswith if not case_insensitive else startswith_i
+    if should_rise:
+        with pytest.raises(InstantiationError):
+            fn(v0, v1, instantiations, is_negated)
+    else:
+        result = fn(v0, v1, instantiations, is_negated)
+        assert result == expected_result
+
+
+# def test_startswith_0():
+#     instantiations : 'dict[str,str|None]' = {"L1": "v0,2,6", "L2": None}
+#     result = startswith("L1", "v", instantiations, is_negated=False)
+#     assert result
+# def test_startswith_1():
+#     instantiations : 'dict[str,str|None]' = {"L1": "v0,2,6", "L2": None}
+#     result = startswith("L1", "b", instantiations, is_negated=False)
+#     assert not result
+# def test_startswith_2():
+#     instantiations : 'dict[str,str|None]' = {"L1": "v0,2,6", "L2": "v0"}
+#     result = startswith("L1", "L2", instantiations, is_negated=False)
+#     assert result
+# def test_startswith_3():
+#     instantiations : 'dict[str,str|None]' = {"L1": "v0,2,6", "L2": None}
+#     with pytest.raises(InstantiationError):
+#         startswith("L1", "L2", instantiations, is_negated=False)
+# def test_startswith_4():
+#     instantiations : 'dict[str,str|None]' = {"L1": "v0,2,6", "L2": "v0"}
+#     assert not startswith("l1", "L2", instantiations, is_negated=False)
+# def test_startswith_i_1():
+#     instantiations : 'dict[str,str|None]' = {"L1": "Hello World", "L2": "hello"}
+#     result = startswith_i("L1", "L2", instantiations, is_negated=False)
+#     assert result
+# def test_startswith_i_2():
+#     instantiations : 'dict[str,str|None]' = {"L1": "Hello World", "L2": "WORLD"}
+#     result = startswith_i("L1", "L2", instantiations, is_negated=False)
+#     assert not result
 # Tests for endswith function
 def test_endswith_variable_true():
     instantiations : 'dict[str,str|None]' = {"L": "hello world", "S": "world"}
@@ -660,18 +681,45 @@ def test_print_line_constant():
     assert result
     assert output == "direct output"
 
-@pytest.mark.parametrize("instantiations,expected_instantiation,should_rise", [
-    ({"X": "5", "Y": "10", "Z": None}, 15, False),
-    ({"X": "5", "Y": "10", "Z": "15"}, 15, False),
-    ({"X": None, "Y": "10", "Z": None}, None, True),
-    ({"X": "5", "Y": None, "Z": None}, None, True),
+@pytest.mark.parametrize("operation,instantiations,expected_instantiation,should_rise", [
+    # add
+    ("add", {"X": "5", "Y": "10", "Z": None}, 15, False),
+    ("add", {"X": "5", "Y": "10", "Z": "15"}, 15, False),
+    ("add", {"X": None, "Y": "10", "Z": None}, None, True),
+    ("add", {"X": "5", "Y": None, "Z": None}, None, True),
+    # sub
+    ("sub", {"X": "10", "Y": "5", "Z": None}, 5, False),
+    ("sub", {"X": "10", "Y": "5", "Z": "5"}, 5, False),
+    ("sub", {"X": None, "Y": "5", "Z": None}, None, True),
+    ("sub", {"X": "10", "Y": None, "Z": None}, None, True),
+    # mul
+    ("mul", {"X": "5", "Y": "10", "Z": None}, 50, False),
+    ("mul", {"X": "5", "Y": "10", "Z": "50"}, 50, False),
+    ("mul", {"X": None, "Y": "10", "Z": None}, None, True),
+    ("mul", {"X": "5", "Y": None, "Z": None}, None, True),
+    # div
+    ("div", {"X": "10", "Y": "5", "Z": None}, 2.0, False),
+    ("div", {"X": "10", "Y": "5", "Z": "2.0"}, 2.0, False),
+    ("div", {"X": None, "Y": "5", "Z": None}, None, True),
+    ("div", {"X": "10", "Y": None, "Z": None}, None, True),
+    # mod
+    ("mod", {"X": "10", "Y": "3", "Z": None}, 1, False),
+    ("mod", {"X": "10", "Y": "3", "Z": "1"}, 1, False),
+    ("mod", {"X": None, "Y": "3", "Z": None}, None, True),
+    ("mod", {"X": "10", "Y": None, "Z": None}, None, True),
+    # pow
+    ("pow", {"X": "2", "Y": "3", "Z": None}, 8, False),
+    ("pow", {"X": "2", "Y": "3", "Z": "8"}, 8, False),
+    ("pow", {"X": None, "Y": "3", "Z": None}, None, True),
+    ("pow", {"X": "2", "Y": None, "Z": None}, None, True),
 ])
-def test_add(instantiations : 'dict[str,str|None]', expected_instantiation : 'int|float|None', should_rise : 'bool'):
+def test_arithmetic(operation : str, instantiations : 'dict[str,str|None]', expected_instantiation : 'int|float|None', should_rise : 'bool'):
+    fn =  globals()[operation]
     if should_rise:
         with pytest.raises(InstantiationError):
-            add("X", "Y", "Z", instantiations, False)
+            fn("X", "Y", "Z", instantiations, False)
     else:
-        add("X", "Y", "Z", instantiations, False)
+        fn("X", "Y", "Z", instantiations, False)
         if expected_instantiation is not None:
             assert instantiations["Z"] == str(expected_instantiation)
         else:
