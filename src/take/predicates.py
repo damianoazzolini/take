@@ -21,6 +21,11 @@ PREDICATES = {
     "contains_i": 2,
     "strip": 2,
     "time_to_seconds": 2,
+    # arity 3
+    "add": 3,
+    "sub": 3,
+    "mul": 3,
+    "div": 3,
     # arity 4
     "split_select": 4,
     "replace": 4
@@ -534,3 +539,51 @@ def time_to_seconds(l : str, l1 : str, instantiations: 'dict[str,str|None]', is_
 
     l1 = get_constant(l1)
     return (total_seconds == get_number(l1)) ^ is_negated
+
+
+def add(l : str, v: str, l1: str, instantiations: 'dict[str,str|None]', is_negated : bool) -> bool:
+    return _wrap_arithmetic("add", l, v, l1, instantiations, is_negated)
+def sub(l : str, v: str, l1: str, instantiations: 'dict[str,str|None]', is_negated : bool) -> bool:
+    return _wrap_arithmetic("sub", l, v, l1, instantiations, is_negated)
+def mul(l : str, v: str, l1: str, instantiations: 'dict[str,str|None]', is_negated : bool) -> bool:
+    return _wrap_arithmetic("mul", l, v, l1, instantiations, is_negated)
+def div(l : str, v: str, l1: str, instantiations: 'dict[str,str|None]', is_negated : bool) -> bool:
+    return _wrap_arithmetic("div", l, v, l1, instantiations, is_negated)
+
+def _wrap_arithmetic(op: str, l: str, v: str, l1: str, instantiations: 'dict[str,str|None]', is_negated: bool) -> bool:
+    """
+    Applies the specified arithmetic operation (add, sub, mul, div) on the values of l and v,
+    and stores the result in l1.
+    """
+    if is_negated:
+        check_safe_negation([l, v, l1], instantiations, op)
+    
+    if is_variable(l):
+        l = get_instantiation(l, instantiations)
+    else:
+        l = get_constant(l)
+
+    if is_variable(v):
+        v = get_instantiation(v, instantiations)
+    else:
+        v = get_constant(v)
+
+    if op == "add":
+        result = get_number(l) + get_number(v)
+    elif op == "sub":
+        result = get_number(l) - get_number(v)
+    elif op == "mul":
+        result = get_number(l) * get_number(v)
+    elif op == "div":
+        result = get_number(l) / get_number(v)
+    else:
+        raise ValueError(f"Unknown operation: {op}")
+
+    if is_variable(l1):
+        if not is_instantiated(l1, instantiations):
+            instantiations[l1] = str(result)
+            return True
+        return (instantiations[l1] == str(result)) ^ is_negated
+
+    l1 = get_constant(l1)
+    return (result == get_number(l1)) ^ is_negated

@@ -659,3 +659,20 @@ def test_print_line_constant():
     
     assert result
     assert output == "direct output"
+
+@pytest.mark.parametrize("instantiations,expected_instantiation,should_rise", [
+    ({"X": "5", "Y": "10", "Z": None}, 15, False),
+    ({"X": "5", "Y": "10", "Z": "15"}, 15, False),
+    ({"X": None, "Y": "10", "Z": None}, None, True),
+    ({"X": "5", "Y": None, "Z": None}, None, True),
+])
+def test_add(instantiations : 'dict[str,str|None]', expected_instantiation : 'int|float|None', should_rise : 'bool'):
+    if should_rise:
+        with pytest.raises(InstantiationError):
+            add("X", "Y", "Z", instantiations, False)
+    else:
+        add("X", "Y", "Z", instantiations, False)
+        if expected_instantiation is not None:
+            assert instantiations["Z"] == str(expected_instantiation)
+        else:
+            assert instantiations["Z"] is None

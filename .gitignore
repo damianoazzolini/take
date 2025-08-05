@@ -19,3 +19,4 @@ log.log
 .coverage
 TODO.md
 scripts/
+.hypothesis/

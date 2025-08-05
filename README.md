@@ -120,6 +120,10 @@ Available predicates:
 - `contains_i(L,A)`: true if the string unified with `L` contains the string unified with `A`, false otherwise, case insensitive
 - `strip(L,L1)`: removes leading and trailing whitespaces from `L` and unifies `L1` with the result
 - `time_to_seconds(L,L1)`: converts a bash time of the form AmBs into seconds (example: `L = 2m42.765s` into `L1 = 162.765`)
+- `add(A,B,C)`: `C` is the result of `A + B`
+- `sub(A,B,C)`: `C` is the result of `A - B`
+- `mul(A,B,C)`: `C` is the result of `A * B`
+- `div(A,B,C)`: `C` is the result of `A - B`
 
 You can also prepend `not` to predicates (except to `line/1`, `print/1`, and `println/1`) to flip the result.
 

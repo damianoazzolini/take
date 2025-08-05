@@ -8,6 +8,7 @@ authors = [
 ]
 requires-python = ">=3.11"
 dependencies = [
+    "hypothesis>=6.136.7",
     "matplotlib>=3.10.3",
     "pytest>=8.4.1",
 ]

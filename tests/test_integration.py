@@ -169,7 +169,7 @@ def generate_random_command() -> str:
     available_predicates = [(k,v) for k,v in PREDICATES.items()]
     command_len = random.randint(1, 10)
     len_args = random.randint(4, 5)
-    args = []
+    args : 'list[str]' = []
     for i in range(len_args):
         # lowercase, uppercase, string, or digit
         arg_type = random.choice(["lowercase", "uppercase", "string", "digit"])
@@ -184,7 +184,6 @@ def generate_random_command() -> str:
     # args = [f"L{i}" for i in range(len_args)]
 
     predicates_list : 'list[str]' = []
-    n_predicates = len(available_predicates) 
 
     for i in range(command_len):
         idx = random.randint(0, len(available_predicates) - 1)
