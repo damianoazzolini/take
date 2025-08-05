@@ -31,7 +31,8 @@ PREDICATES = {
     "mod": 3,
     # arity 4
     "split_select": 4,
-    "replace": 4
+    "replace": 4,
+    "substring": 4
 }
 
 
@@ -623,3 +624,38 @@ def _wrap_arithmetic(op: str, l: str, v: str, l1: str, instantiations: 'dict[str
 
     l1 = get_constant(l1)
     return (result == get_number(l1)) ^ is_negated
+
+def substring(text: str, start: str, end: str, result: str, instantiations: 'dict[str,str|None]', is_negated: bool) -> bool:
+    """
+    Extract substring from text[start:end].
+    If result is a variable, store the substring in it.
+    If result is not a variable, check if it matches the substring.
+    """
+    if is_negated:
+        check_safe_negation([text, start, end, result], instantiations, "substring")
+
+    if is_variable(text):
+        text = get_instantiation(text, instantiations)
+    else:
+        text = get_constant(text)
+
+    if is_variable(start):
+        start_index = int(get_instantiation(start, instantiations))
+    else:
+        start_index = get_integer(start)
+
+    if is_variable(end):
+        end_index = int(get_instantiation(end, instantiations))
+    else:
+        end_index = get_integer(end)
+
+    substring = text[start_index:end_index]
+
+    if is_variable(result):
+        if not is_instantiated(result, instantiations):
+            instantiations[result] = substring
+            return True
+        return (instantiations[result] == substring) ^ is_negated
+
+    result = get_constant(result)
+    return (substring == result) ^ is_negated

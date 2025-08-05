@@ -724,3 +724,13 @@ def test_arithmetic(operation : str, instantiations : 'dict[str,str|None]', expe
             assert instantiations["Z"] == str(expected_instantiation)
         else:
             assert instantiations["Z"] is None
+
+@pytest.mark.parametrize("instantiations,expected_instantiation", [
+    ({"Text": "hello world", "Start": "0", "End": "5", "Result": None}, "hello"),
+    ({"Text": "hello world", "Start": "6", "End": "12", "Result": None}, "world"),
+    ({"Text": "hello world", "Start": "15", "End": "5", "Result": None}, "")
+])
+def test_substring(instantiations: 'dict[str,str|None]', expected_instantiation: 'str'):
+    substring("Text", "Start", "End", "Result", instantiations, False)
+    assert instantiations["Result"] == expected_instantiation
+        
