@@ -3,25 +3,41 @@ import argparse
 def parse_arguments():
     epilog = """
 Available predicates (name and arity, i.e., number of arguments):
-- line/2
-- startswith/2
-- startswith_i/2
-- endswith/2
-- endswith_i/2
-- length/2
-- lt/2
-- gt/2
-- leq/2
-- eq/2
-- neq/2
-- capitalize/2
-- strip/2
-- contains/2
-- contains_i/2
-- time_to_seconds/2
-- split_select/4
-- replace/4
-    
+- arity 1
+    - line/1
+    - print/1
+    - println/1
+- arity 2
+    - startswith/2
+    - startswith_i/2
+    - endswith/2
+    - endswith_i/2
+    - length/2
+    - lt/2
+    - leq/2
+    - gt/2
+    - geq/2
+    - eq/2
+    - neq/2
+    - capitalize/2
+    - line_number/2
+    - contains/2
+    - contains_i/2
+    - strip/2
+    - time_to_seconds/2
+    - abs/2
+- arity 3
+    - add/3
+    - sub/3
+    - mul/3
+    - div/3
+    - pow/3
+    - mod/3
+- arity 4
+    - split_select/4
+    - replace/4
+    - substring/4
+
 Examples:
     take -f log.txt -c "line(L), print(L)" -a count
     take -f f.txt -c "line(L), split_select(L,space,1,L1), println(L1)" -a sum -so
@@ -44,6 +60,8 @@ Examples:
             "sum",
             "product",
             "average",
+            "stddev",
+            "variance",
             "min",
             "max",
             "concat",

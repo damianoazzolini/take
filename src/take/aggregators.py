@@ -35,6 +35,23 @@ def apply_aggregation_function(aggregate_lines : 'list[str]', args : argparse.Na
                 count = len(aggregate_lines)
                 res = total / count if count > 0 else 0
                 print(f"{prefix}{res}")
+            elif aggregate == "stddev":
+                n = len(aggregate_lines)
+                if n < 2:
+                    print(f"{prefix}0.0")
+                else:
+                    mean = sum(float(line[1]) for line in aggregate_lines) / n
+                    variance = sum((float(line[1]) - mean) ** 2 for line in aggregate_lines) / (n - 1)
+                    stddev = math.sqrt(variance)
+                    print(f"{prefix}{stddev}")
+            elif aggregate == "variance":
+                n = len(aggregate_lines)
+                if n < 2:
+                    print(f"{prefix}0.0")
+                else:
+                    mean = sum(float(line[1]) for line in aggregate_lines) / n
+                    variance = sum((float(line[1]) - mean) ** 2 for line in aggregate_lines) / (n - 1)
+                    print(f"{prefix}{variance}")
             elif aggregate == "min" or aggregate == "max":
                 fn = min if aggregate == "min" else max
                 res = fn(float(line[1]) for line in aggregate_lines)
@@ -99,9 +116,9 @@ def apply_aggregation_function(aggregate_lines : 'list[str]', args : argparse.Na
                 for s in sorted_lines:
                     if args.with_filename:
                         if not args.uncolored:
-                            print(f"{bcolors.PURPLE}{s[0]}:{bcolors.ENDC} ", end='')
+                            print(f"{bcolors.PURPLE}{s[0]}:{bcolors.ENDC}", end='')
                         else:
-                            print(f"{s[0]}: ", end='')
+                            print(f"{s[0]}:", end='')
                     print(s[1])
             else:
                 print(f"Unknown aggregation function: {aggregate}")

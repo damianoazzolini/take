@@ -2,6 +2,7 @@
 
 The goal of this tool is to filter files lines with a logic-like language.
 That is, there are some built in predicates that applies operations on lines.
+Then, the results can also be aggregated.
 
 Each predicate takes as input at least one variable/constant with a string (the considered line) and unifies a variable with the result of the operation or succeeds/fails.
 
@@ -141,6 +142,8 @@ Available aggregates (some are self-explanatory):
 - `sum`
 - `product`
 - `average`
+- `stddev`
+- `variance`
 - `min`
 - `max`
 - `concat`: concatenates the lines
