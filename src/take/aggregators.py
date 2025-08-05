@@ -50,6 +50,17 @@ def apply_aggregation_function(aggregate_lines : 'list[str]', args : argparse.Na
             elif aggregate == "concat":
                 res = ''.join(line[1] for line in aggregate_lines)
                 print(f"{prefix}{res}")
+            elif aggregate == "median":
+                values = sorted(float(line[1]) for line in aggregate_lines)
+                n = len(values)
+                if n % 2 == 1:
+                    median = values[n // 2]
+                else:
+                    median = (values[n // 2 - 1] + values[n // 2]) / 2
+                print(f"{prefix}{median}")
+            elif aggregate == "word_count":
+                total_words = sum(len(line[1].split()) for line in aggregate_lines)
+                print(f"{prefix}{total_words}")
             # elif aggregate == "join": # TODO: with a separator
             #     print(', '.join(aggregate_lines))
             elif aggregate == "unique":

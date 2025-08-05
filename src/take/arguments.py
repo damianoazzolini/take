@@ -52,6 +52,8 @@ Examples:
             "last",
             "sort_ascending",
             "sort_descending",
+            "median",
+            "word_count"
         ],
         help="Aggregation function to apply to the results")
     # parser.add_argument("-v", "--verbose", action="store_true",help="Enable verbose output")

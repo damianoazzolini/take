@@ -145,6 +145,8 @@ Available aggregates (some are self-explanatory):
 - `last`
 - `sort_ascending`
 - `sort_descending`
+- `median`
+- `word_count`
 
 If you want only the result of the aggregation and suppress the other output, you can use the flag `-so/--suppress-output`.
 

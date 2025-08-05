@@ -203,7 +203,7 @@ def test_random_command(seed : int, aggregator: bool):
     command = generate_random_command()
     filename = get_temporary_file(CONTENT)
     if aggregator:
-        aggregate = random.sample(["count", "sum", "product", "average", "min", "max", "concat", "unique", "first", "last", "sort_ascending", "sort_descending"], 1)
+        aggregate = random.sample(["count", "sum", "product", "average", "min", "max", "concat", "unique", "first", "last", "sort_ascending", "sort_descending", "median", "word_count"], 1)
     else:
         aggregate = []
     try:
