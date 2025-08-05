@@ -124,6 +124,10 @@ Available predicates:
 - `sub(A,B,C)`: `C` is the result of `A - B`
 - `mul(A,B,C)`: `C` is the result of `A * B`
 - `div(A,B,C)`: `C` is the result of `A - B`
+- `pow(A,B,C)`: `C` is the result of `A**B`
+- `mod(A,B,C)`: `C` is the result of `A % B`
+- `abs(A,B)`: `B` is `|A|`
+- `substring(S,Start,End,ST)`: `ST` is the substring of `S` from position `Start` (included) to position `End` (excluded) 
 
 You can also prepend `not` to predicates (except to `line/1`, `print/1`, and `println/1`) to flip the result.
 
