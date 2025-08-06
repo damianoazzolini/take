@@ -1,8 +1,9 @@
-import io
 from contextlib import redirect_stdout
 from hypothesis import given, settings, strategies
-from tempfile import NamedTemporaryFile
+import io
 import os
+import pytest
+from tempfile import NamedTemporaryFile
 
 
 from src.take.take import *
@@ -101,61 +102,25 @@ def get_result(
         loop_process(args)
         return buf.getvalue()
 
-def test_integration_sw_len_gt_leq_cap():
-    command = ["line(L), startswith(L,i), length(L,N), gt(N,5), leq(N,14), capitalize(L,LC), print(LC)"]
+@pytest.mark.parametrize("command, expected, aggregate, strip_results, max_count", [
+    (["line(L), startswith(L,i), length(L,N), gt(N,5), leq(N,14), capitalize(L,LC), print(LC)"], "Instance", [], False, 0),
+    (["line(L), length(L,N), lt(N,1), println(L)"], "\n\n\n\n", [], False, 0),
+    (["line(L), length(L,N), not gt(N,1), println(L)"], "\n\n\n\n", [], False, 0),
+    (["line(L), startswith(L,'real'), split_select(L,tab,1,T), time_to_seconds(T,TS), println(TS)"], "8.853\n31.248\n162.765\n", [], False, 0),
+    (["line(L), startswith(L,'AUCPR'), split_select(L,':',1,L1), strip(L1,L2), println(L2)"], "0.720441984486102\n0.9423737373737374\n0.7111492673992674\n0.9536004273504273\n0.6554753579753579\n[average] 0.7966081549169783\n", ["average"], False, 0),
+    (["line(L), startswith(L,size), split_select(L,space,1,S), println(S)"], "7\n8\n9\n10\n11.5\n[sort_descending] 11.510987", ["sort_descending"], True, 0),
+    (["line(L), startswith(L,size), split_select(L,space,1,S), println(S)"], "78910", [], True, 4),
+    (["line(L), startswith(L,size), split_select(L,space,1,S), print(S), println(S)"], "7788991010", [], True, 4)
+])
+def test_integration(command : 'list[str]', expected: str, aggregate : 'list[str]', strip_results: bool, max_count: int):
     filename = get_temporary_file(CONTENT)
-    res = get_result(command, filename)
+    res = get_result(command, filename, aggregate=aggregate, max_count=max_count)
     os.unlink(filename)
-    assert res == "Instance"
+    if strip_results:
+        res = res.strip().replace("\n", "").replace(" ", "")
+        expected = expected.strip().replace("\n", "").replace(" ", "")
+    assert res == expected
 
-def test_integration_len_lt():
-    command = ["line(L), length(L,N), lt(N,1), println(L)"]
-    filename = get_temporary_file(CONTENT)
-    res = get_result(command, filename)
-    os.unlink(filename)
-    assert res == "\n\n\n\n"
-
-def test_integration_len_not_gt():
-    command = ["line(L), length(L,N), not gt(N,1), println(L)"]
-    filename = get_temporary_file(CONTENT)
-    res = get_result(command, filename)
-    os.unlink(filename)
-    assert res == "\n\n\n\n"
-
-def test_integration_sw_sps_t2s():
-    command = ["line(L), startswith(L,'real'), split_select(L,tab,1,T), time_to_seconds(T,TS), println(TS)"]
-    filename = get_temporary_file(CONTENT)
-    res = get_result(command, filename)
-    os.unlink(filename)
-    assert res == "8.853\n31.248\n162.765\n"
-
-def test_integration_sw_sps_st_agg_avg():
-    command = ["line(L), startswith(L,'AUCPR'), split_select(L,':',1,L1), strip(L1,L2), println(L2)"]
-    filename = get_temporary_file(CONTENT)
-    res = get_result(command, filename, aggregate=["average"])
-    os.unlink(filename)
-    assert res == "0.720441984486102\n0.9423737373737374\n0.7111492673992674\n0.9536004273504273\n0.6554753579753579\n[average] 0.7966081549169783\n"
-
-def test_integration_sw_sps_st_agg_sort():
-    command = ["line(L), startswith(L,size), split_select(L,space,1,S), println(S)"]
-    filename = get_temporary_file(CONTENT)
-    res = get_result(command, filename, aggregate=["sort_descending"])
-    os.unlink(filename)
-    assert res.strip().replace("\n","").replace(" ","") == "7891011.5[sort_descending]11.510987"
-
-def test_integration_sw_sps_st_max_count():
-    command = ["line(L), startswith(L,size), split_select(L,space,1,S), println(S)"]
-    filename = get_temporary_file(CONTENT)
-    res = get_result(command, filename, max_count=4)
-    os.unlink(filename)
-    assert res.strip().replace("\n","").replace(" ","") == "78910"
-
-def test_integration_sw_sps_st_max_count_double_print():
-    command = ["line(L), startswith(L,size), split_select(L,space,1,S), print(S), println(S)"]
-    filename = get_temporary_file(CONTENT)
-    res = get_result(command, filename, max_count=4)
-    os.unlink(filename)
-    assert res.strip().replace("\n","").replace(" ","") == "7788991010"
 
 def test_integration_sw_sps_st_max_count_filename():
     command = ["line(L), startswith(L,size), split_select(L,space,1,S), println(S)"]
