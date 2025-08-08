@@ -3,15 +3,15 @@ import math
 
 from .utils import *
 
-def _compute_sum(aggregate_lines: 'list[str]') -> float:
+def _compute_sum(aggregate_lines: 'list[tuple[str,str]]') -> float:
     return sum(float(line[1]) for line in aggregate_lines)
-def _compute_product(aggregate_lines: 'list[str]') -> float:
+def _compute_product(aggregate_lines: 'list[tuple[str,str]]') -> float:
     return math.prod(float(line[1]) for line in aggregate_lines)
-def _compute_min_max(aggregate_lines: 'list[str]', aggregate: str) -> 'tuple[float,float]':
+def _compute_min_max(aggregate_lines: 'list[tuple[str,str]]') -> 'tuple[float,float]':
     min_val = min(float(line[1]) for line in aggregate_lines)
     max_val = max(float(line[1]) for line in aggregate_lines)
     return min_val, max_val
-def _compute_median(aggregate_lines: 'list[str]') -> float:
+def _compute_median(aggregate_lines: 'list[tuple[str,str]]') -> float:
     values = sorted(float(line[1]) for line in aggregate_lines)
     n = len(values)
     if n % 2 == 1:
@@ -19,20 +19,20 @@ def _compute_median(aggregate_lines: 'list[str]') -> float:
     else:
         median = (values[n // 2 - 1] + values[n // 2]) / 2
     return median
-def _compute_variance(aggregate_lines: 'list[str]') -> float:
+def _compute_variance(aggregate_lines: 'list[tuple[str,str]]') -> float:
     n = len(aggregate_lines)
     if n < 2:
         return 0.0
     mean = sum(float(line[1]) for line in aggregate_lines) / n
     variance = sum((float(line[1]) - mean) ** 2 for line in aggregate_lines) / (n - 1)
     return variance
-def _compute_mean(aggregate_lines: 'list[str]') -> float:
+def _compute_mean(aggregate_lines: 'list[tuple[str,str]]') -> float:
     total = sum(float(line[1]) for line in aggregate_lines)
     count = len(aggregate_lines)
     res = total / count if count > 0 else 0
     return res
 
-def apply_aggregation_function(aggregate_lines : 'list[str]', args : argparse.Namespace) -> 'list[str] | list[float]':
+def apply_aggregation_function(aggregate_lines : 'list[tuple[str,str]]', args : argparse.Namespace) -> 'list[str] | list[float]':
     """
     Apply the aggregate function.
     """
@@ -66,7 +66,7 @@ def apply_aggregation_function(aggregate_lines : 'list[str]', args : argparse.Na
             elif aggregate == "median":
                 print(f"{prefix}{_compute_median(aggregate_lines)}")
             elif aggregate == "range":
-                min_val, max_val = _compute_min_max(aggregate_lines, aggregate)
+                min_val, max_val = _compute_min_max(aggregate_lines)
                 print(f"{prefix}{max_val - min_val}")
             elif aggregate == "min" or aggregate == "max":
                 fn = min if aggregate == "min" else max
@@ -87,7 +87,7 @@ def apply_aggregation_function(aggregate_lines : 'list[str]', args : argparse.Na
                 median = _compute_median(aggregate_lines)
                 variance = _compute_variance(aggregate_lines)
                 std_dev = math.sqrt(variance)
-                min_val, max_val = _compute_min_max(aggregate_lines, aggregate)
+                min_val, max_val = _compute_min_max(aggregate_lines)
 
                 print(f"{prefix}")
                 print(f"Count:    {n}")
