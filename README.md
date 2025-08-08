@@ -91,7 +91,11 @@ Output
 ```
 
 ## Installation
-Install [`uv`](https://docs.astral.sh/uv/) and execute take with `uv run take` (see below the options and/or use the `-h` flag).
+Install [`uv`](https://docs.astral.sh/uv/), clone the repo, and run
+```
+uv pip install .
+```
+If you want to edit the project, add the `-e` flag after `install`.
 
 
 ## Quick Description and Available Predicates
@@ -138,16 +142,18 @@ You can pass arguments as strings by enclosing them into single quotes (e.g., `'
 You can also aggregate the results of the applications of the predicates on the file with the option `-a/--aggregate`.
 
 Available aggregates (some are self-explanatory):
-- `count`: count the lines
+- `count`: counts the lines
 - `sum`
 - `product`
-- `average`
+- `average` or `mean`
 - `stddev`
 - `variance`
 - `min`
 - `max`
+- `range`: max value - min value
+- `summary`: computes summary statistics (count, sum, mean, mediam, std dev, min, max, and range)
 - `concat`: concatenates the lines
-- `unique`: filter unique lines
+- `unique`: filters unique lines
 - `first`
 - `last`
 - `sort_ascending`

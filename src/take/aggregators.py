@@ -3,6 +3,35 @@ import math
 
 from .utils import *
 
+def _compute_sum(aggregate_lines: 'list[str]') -> float:
+    return sum(float(line[1]) for line in aggregate_lines)
+def _compute_product(aggregate_lines: 'list[str]') -> float:
+    return math.prod(float(line[1]) for line in aggregate_lines)
+def _compute_min_max(aggregate_lines: 'list[str]', aggregate: str) -> 'tuple[float,float]':
+    min_val = min(float(line[1]) for line in aggregate_lines)
+    max_val = max(float(line[1]) for line in aggregate_lines)
+    return min_val, max_val
+def _compute_median(aggregate_lines: 'list[str]') -> float:
+    values = sorted(float(line[1]) for line in aggregate_lines)
+    n = len(values)
+    if n % 2 == 1:
+        median = values[n // 2]
+    else:
+        median = (values[n // 2 - 1] + values[n // 2]) / 2
+    return median
+def _compute_variance(aggregate_lines: 'list[str]') -> float:
+    n = len(aggregate_lines)
+    if n < 2:
+        return 0.0
+    mean = sum(float(line[1]) for line in aggregate_lines) / n
+    variance = sum((float(line[1]) - mean) ** 2 for line in aggregate_lines) / (n - 1)
+    return variance
+def _compute_mean(aggregate_lines: 'list[str]') -> float:
+    total = sum(float(line[1]) for line in aggregate_lines)
+    count = len(aggregate_lines)
+    res = total / count if count > 0 else 0
+    return res
+
 def apply_aggregation_function(aggregate_lines : 'list[str]', args : argparse.Namespace) -> 'list[str] | list[float]':
     """
     Apply the aggregate function.
@@ -25,33 +54,20 @@ def apply_aggregation_function(aggregate_lines : 'list[str]', args : argparse.Na
             if aggregate == "count":
                 print(f"{prefix}{len(aggregate_lines)}")
             elif aggregate == "sum":
-                total = sum(float(line[1]) for line in aggregate_lines)
-                print(f"{prefix}{total}")
+                print(f"{prefix}{_compute_sum(aggregate_lines)}")
             elif aggregate == "product":
-                total = math.prod(float(line[1]) for line in aggregate_lines)
-                print(f"{prefix}{total}")
-            elif aggregate == "average":
-                total = sum(float(line[1]) for line in aggregate_lines)
-                count = len(aggregate_lines)
-                res = total / count if count > 0 else 0
-                print(f"{prefix}{res}")
+                print(f"{prefix}{_compute_product(aggregate_lines)}")
+            elif aggregate == "average" or aggregate == "mean":
+                print(f"{prefix}{_compute_mean(aggregate_lines)}")
             elif aggregate == "stddev":
-                n = len(aggregate_lines)
-                if n < 2:
-                    print(f"{prefix}0.0")
-                else:
-                    mean = sum(float(line[1]) for line in aggregate_lines) / n
-                    variance = sum((float(line[1]) - mean) ** 2 for line in aggregate_lines) / (n - 1)
-                    stddev = math.sqrt(variance)
-                    print(f"{prefix}{stddev}")
+                print(f"{prefix}{math.sqrt(_compute_variance(aggregate_lines))}")
             elif aggregate == "variance":
-                n = len(aggregate_lines)
-                if n < 2:
-                    print(f"{prefix}0.0")
-                else:
-                    mean = sum(float(line[1]) for line in aggregate_lines) / n
-                    variance = sum((float(line[1]) - mean) ** 2 for line in aggregate_lines) / (n - 1)
-                    print(f"{prefix}{variance}")
+                print(f"{prefix}{_compute_variance(aggregate_lines)}")
+            elif aggregate == "median":
+                print(f"{prefix}{_compute_median(aggregate_lines)}")
+            elif aggregate == "range":
+                min_val, max_val = _compute_min_max(aggregate_lines, aggregate)
+                print(f"{prefix}{max_val - min_val}")
             elif aggregate == "min" or aggregate == "max":
                 fn = min if aggregate == "min" else max
                 res = fn(float(line[1]) for line in aggregate_lines)
@@ -64,17 +80,27 @@ def apply_aggregation_function(aggregate_lines : 'list[str]', args : argparse.Na
                     else:
                         print(f"{s_idxs}:", end='')
                 print(f"{res}")
+            elif aggregate == "summary":
+                n = len(aggregate_lines)
+                total = _compute_sum(aggregate_lines)
+                mean = _compute_mean(aggregate_lines)
+                median = _compute_median(aggregate_lines)
+                variance = _compute_variance(aggregate_lines)
+                std_dev = math.sqrt(variance)
+                min_val, max_val = _compute_min_max(aggregate_lines, aggregate)
+
+                print(f"{prefix}")
+                print(f"Count:    {n}")
+                print(f"Sum:      {total:.6f}")
+                print(f"Mean:     {mean:.6f}")
+                print(f"Median:   {median:.6f}")
+                print(f"Std Dev:  {std_dev:.6f}")
+                print(f"Min:      {min_val:.6f}")
+                print(f"Max:      {max_val:.6f}")
+                print(f"Range:    {max_val - min_val:.6f}")
             elif aggregate == "concat":
                 res = ''.join(line[1] for line in aggregate_lines)
                 print(f"{prefix}{res}")
-            elif aggregate == "median":
-                values = sorted(float(line[1]) for line in aggregate_lines)
-                n = len(values)
-                if n % 2 == 1:
-                    median = values[n // 2]
-                else:
-                    median = (values[n // 2 - 1] + values[n // 2]) / 2
-                print(f"{prefix}{median}")
             elif aggregate == "word_count":
                 total_words = sum(len(line[1].split()) for line in aggregate_lines)
                 print(f"{prefix}{total_words}")
