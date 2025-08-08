@@ -96,7 +96,8 @@ def get_result(
         uncolored=True,
         recursive=False,
         stats=False,
-        debug=False
+        debug=False,
+        max_columns=0
     )
     with io.StringIO() as buf, redirect_stdout(buf):
         loop_process(args)

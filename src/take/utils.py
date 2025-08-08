@@ -52,3 +52,15 @@ def wrap_sort(aggregate_lines : 'list[tuple[str,str]]', reverse : bool) -> 'list
         new_data = aggregate_lines
 
     return sorted(new_data, key=lambda x: x[1], reverse=reverse)
+
+def get_error_prefix(uncolored : bool) -> str:
+    if uncolored:
+        return "[ERROR]"
+    else:
+        return f"{bcolors.ERROR}[ERROR]{bcolors.ENDC}"
+
+def get_warning_prefix(uncolored : bool) -> str:
+    if uncolored:
+        return "[WARNING]"
+    else:
+        return f"{bcolors.WARNING}[WARNING]{bcolors.ENDC}"

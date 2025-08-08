@@ -226,9 +226,9 @@ def apply_sequence_commands(args : argparse.Namespace) -> 'list[tuple[str,str]]'
                                         file_name = filename
                                     else:
                                         file_name = None
-                                    res = print_line(command.args[0], c.variables_dict, with_newline=command.name == "println", filename=file_name, uncolored_output=args.uncolored)
+                                    res = print_line(command.args[0], c.variables_dict, with_newline=command.name == "println", filename=file_name, uncolored_output=args.uncolored, max_columns=args.max_columns)
                                 with io.StringIO() as buf, redirect_stdout(buf):
-                                    print_line(command.args[0], c.variables_dict, with_newline=command.name == "println")
+                                    print_line(command.args[0], c.variables_dict, with_newline=command.name == "println") # do not limit the length here
                                     gv : str = buf.getvalue()
                                     if gv.strip() != "":
                                         aggregate_lines.append((filename,gv))

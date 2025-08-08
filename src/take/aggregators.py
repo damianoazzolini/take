@@ -44,11 +44,7 @@ def apply_aggregation_function(aggregate_lines : 'list[tuple[str,str]]', args : 
         else:
             prefix = f"{bcolors.GREEN}[{aggregate}]{bcolors.ENDC} "
         if len(aggregate_lines) == 0:
-            if args.uncolored:
-                print("[WARNING]:", end=' ')
-            else:
-                print(f"{bcolors.WARNING}[WARNING]{bcolors.ENDC}:", end=' ')
-            print("No lines to aggregate")
+            print(f"{get_warning_prefix(args.uncolored)} No lines to aggregate")
             return []
         try:
             if aggregate == "count":
@@ -147,14 +143,8 @@ def apply_aggregation_function(aggregate_lines : 'list[tuple[str,str]]', args : 
                             print(f"{s[0]}:", end='')
                     print(s[1])
             else:
-                print(f"Unknown aggregation function: {aggregate}")
+                print(f"{get_warning_prefix(args.uncolored)} Unknown aggregation function: {aggregate}")
         except Exception as e:
-            print("")
-            if args.uncolored:
-                print("[ERROR]:", end=' ')
-            else:
-                print(f"{bcolors.ERROR}[ERROR]{bcolors.ENDC}:", end=' ')
-            print(f"Error applying aggregation function '{aggregate}': {e}")
-            obtained_data = []
+            print(f"\n{get_error_prefix(args.uncolored)} Error applying aggregation function '{aggregate}': {e}")
 
     return obtained_data

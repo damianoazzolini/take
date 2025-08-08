@@ -144,23 +144,39 @@ def line(current_line : str, l : str, instantiations : 'dict[str,str|None]') -> 
 
     return current_line == l
 
-def print_line(l : str, instantiations : 'dict[str,str|None]', with_newline : bool = False, filename : str|None = None, uncolored_output : bool = False) -> bool:
+def print_line(l : str, instantiations : 'dict[str,str|None]', with_newline : bool = False, filename : str|None = None, uncolored_output : bool = False, max_columns : int = 0) -> bool:
     """
     Print the value of the variable l from the instantiations dictionary.
     If l is not a variable, print it directly.
     Returns True if the variable exists and is printed, False otherwise.
     """
+    stop = False
     if is_variable(l):
+        max_len = max_columns
         if instantiations[l] is not None:
             if filename is not None:
+                if max_columns > 0 and len(filename) > max_columns-1:
+                    stop = True
+                    filename = filename[:max_columns-1]
                 if not uncolored_output:
                     print(f"{bcolors.PURPLE}{filename}:{bcolors.ENDC}", end='')
                 else:
                     print(f"{filename}:", end='')
-            print(f"{instantiations[l]}", end="\n" if with_newline else "")
+                if stop:
+                    print("")
+                    return True
+                max_len -= len(filename) + 1
+            if max_columns > 0:
+                to_print = instantiations[l][:max_len]
+            else:
+                to_print = instantiations[l]
+            print(f"{to_print}", end="\n" if with_newline else "")
     else:
         l = get_constant(l)
-        print(l, end="\n" if with_newline else "")
+        if max_columns > 0:
+            print(l[:max_columns], end="\n" if with_newline else "")
+        else:
+            print(l, end="\n" if with_newline else "")
     return True
 
 

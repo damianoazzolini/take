@@ -55,6 +55,7 @@ Examples:
     parser.add_argument("--uncolored", action="store_true", help="Disable colored output")
     parser.add_argument("--stats", action="store_true", help="Show statistics about the processed files")
     parser.add_argument("--debug", action="store_true", help="Show debug information")
+    parser.add_argument("--max-columns", type=int, default=0, help="Maximum number of columns to process (0 for no limit)")
     parser.add_argument("-a", "--aggregate", action="append", choices=[
             "count",
             "sum",
