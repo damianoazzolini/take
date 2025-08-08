@@ -1,3 +1,5 @@
+from .utils import bcolors
+
 PREDICATES = {
     # arity 1
     "line": 1,
@@ -142,7 +144,7 @@ def line(current_line : str, l : str, instantiations : 'dict[str,str|None]') -> 
 
     return current_line == l
 
-def print_line(l : str, instantiations : 'dict[str,str|None]', with_newline : bool = False) -> bool:
+def print_line(l : str, instantiations : 'dict[str,str|None]', with_newline : bool = False, filename : str|None = None, uncolored_output : bool = False) -> bool:
     """
     Print the value of the variable l from the instantiations dictionary.
     If l is not a variable, print it directly.
@@ -150,7 +152,11 @@ def print_line(l : str, instantiations : 'dict[str,str|None]', with_newline : bo
     """
     if is_variable(l):
         if instantiations[l] is not None:
-            print(instantiations[l], end="\n" if with_newline else "")
+            if not uncolored_output:
+                print(f"{bcolors.PURPLE}{filename}:{bcolors.ENDC}", end='')
+            else:
+                print(f"{filename}:", end='')
+            print(f"{instantiations[l]}", end="\n" if with_newline else "")
     else:
         l = get_constant(l)
         print(l, end="\n" if with_newline else "")

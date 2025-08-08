@@ -154,11 +154,7 @@ class Command:
         # check singleton variables (i.e., variables appearing only once in the command)
         for var in self.variables_dict:
             if sum(var in lit.args for lit in self.literals) == 1:
-                if self.colored_output:
-                    print(f"{bcolors.WARNING}[WARNING]{bcolors.ENDC}:", end=' ')
-                else:
-                    print("[WARNING]:", end=' ')
-                print(f"variable '{var}' appears only once in the command.")
+                print(f"{get_warning_prefix(not self.colored_output)} variable '{var}' appears only once in the command.")
 
 
 def plot(data : 'list[tuple[str,str]]', uncolored : bool) -> None:
@@ -227,12 +223,10 @@ def apply_sequence_commands(args : argparse.Namespace) -> 'list[tuple[str,str]]'
                                 processed = True
                                 if not args.suppress_output:
                                     if args.with_filename:
-                                        if not args.uncolored:
-                                            print(f"{bcolors.PURPLE}{filename}:{bcolors.ENDC}", end='')
-                                        else:
-                                            print(f"{filename}:", end='')
-                                    res = print_line(command.args[0], c.variables_dict, with_newline=command.name == "println")
-                                # if args.aggregate:
+                                        file_name = filename
+                                    else:
+                                        file_name = None
+                                    res = print_line(command.args[0], c.variables_dict, with_newline=command.name == "println", filename=file_name, uncolored_output=args.uncolored)
                                 with io.StringIO() as buf, redirect_stdout(buf):
                                     print_line(command.args[0], c.variables_dict, with_newline=command.name == "println")
                                     gv : str = buf.getvalue()
