@@ -161,17 +161,17 @@ class Command:
                 print(f"variable '{var}' appears only once in the command.")
 
 
-def plot(data : 'list[tuple[str,str]]') -> None:
+def plot(data : 'list[tuple[str,str]]', uncolored : bool) -> None:
     """
     Placeholder for a plotting function.
     """
     x_axis = list(range(len(data)))
-    y_axis = [float(d[1]) for d in data]
     try:
+        y_axis = [float(d[1]) for d in data]
         plt.plot(x_axis, y_axis)  # type: ignore
         plt.show()  # type: ignore
     except Exception as e:
-        print(f"ERROR: Error plotting data: {e}")
+        print(f"{get_error_prefix(uncolored)} Error plotting data: {e}")
         # Handle the error, e.g., log it or print a message
         # For now, just print the error
 
@@ -255,13 +255,7 @@ def apply_sequence_commands(args : argparse.Namespace) -> 'list[tuple[str,str]]'
                             if not res:
                                 break
         except Exception as e:
-            # aggregate_lines = [l for l in aggregate_lines if l[1] != '']
-            if args.uncolored:
-                print("[ERROR]", end=' ')
-            else:
-                print(f"{bcolors.ERROR}[ERROR]{bcolors.ENDC}", end=' ')
-            print(f"processing file {filename}")
-            # print(f"Command: {command}")
+            print(f"{get_error_prefix(args.uncolored)} processing file {filename}")
             if args.debug:
                 print(f"Error: {e}")
 
@@ -288,7 +282,7 @@ def loop_process(args : 'argparse.Namespace'):
 
     if args.plot:
         if len(res) > 0:
-            plot(res)
+            plot(res, args.uncolored)
         else:
             if args.uncolored:
                 print("[WARNING]:", end=' ')
