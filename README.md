@@ -151,7 +151,7 @@ Available aggregates (some are self-explanatory):
 - `min`
 - `max`
 - `range`: max value - min value
-- `summary`: computes summary statistics (count, sum, mean, mediam, std dev, min, max, and range)
+- `summary`: computes summary statistics (count, sum, mean, median, std dev, min, max, and range)
 - `concat`: concatenates the lines
 - `unique`: filters unique lines
 - `first`
@@ -172,6 +172,49 @@ Assume the file is called `f.txt`.
 Count the empty lines from a file: `take -f f.txt -c "line(L), length(L,N), lt(N,1), println(L)" -a count -so`
 
 Assuming you have a file where the line contains results separated by spaces and you want to pick the second element of each line and sum all: `take -f f.txt -c "line(L), split_select(L,space,1,L1), println(L1)" -a sum -so`
+
+## Benchmarking
+We run a small experimental evaluation to benchmark the tool.
+We considered files called `stress_N.txt` with `N` lines of the form `Iteration IT: R, data` where `R` is a random number.
+The goal is to extract all the values of `R` and compute statistics on them, so we run the command
+```
+take -f stress_N.txt -c "line(L), split_select(L, space, 2, L1), replace(L1, ',', '',L2), println(L2)" -a summary -H -so
+```
+We consider 10 runs of the same command computed with [`multitime`](https://github.com/ltratt/multitime).
+Overall, we run `multitime -n 10 take -f stress_N.txt -c "line(L), split_select(L, space, 2, L1), replace(L1, ',', '',L2), println(L2)" -a summary -H -so`.
+
+Results:
+```
+N = 100 (size 4.2K)
+            Mean                Std.Dev.    Min         Median      Max
+real        0.476+/-0.0234      0.023       0.445       0.465       0.516       
+user        2.245+/-0.0715      0.071       2.108       2.243       2.369       
+sys         0.075+/-0.0152      0.015       0.051       0.074       0.099    
+
+N = 1_000 (size 42K)
+            Mean                Std.Dev.    Min         Median      Max
+real        0.475+/-0.0240      0.024       0.445       0.474       0.515       
+user        2.283+/-0.1124      0.112       2.080       2.296       2.479       
+sys         0.086+/-0.0300      0.030       0.052       0.076       0.134   
+
+N = 10_000 (size 419K)
+            Mean                Std.Dev.    Min         Median      Max
+real        0.593+/-0.0176      0.018       0.566       0.595       0.618       
+user        2.421+/-0.1013      0.101       2.213       2.443       2.592       
+sys         0.092+/-0.0253      0.025       0.052       0.092       0.127  
+
+N = 100_000 (size 4.1M)
+            Mean                Std.Dev.    Min         Median      Max
+real        1.942+/-0.1521      0.152       1.668       1.981       2.148       
+user        3.750+/-0.1404      0.140       3.449       3.768       3.915       
+sys         0.104+/-0.0297      0.030       0.057       0.107       0.155  
+
+N = 1_000_000 (size 41M)
+            Mean                Std.Dev.    Min         Median      Max
+real        14.054+/-1.1232      1.121       12.893      13.547      16.527      
+user        15.702+/-1.0858      1.083       14.650      15.145      17.965      
+sys         0.225+/-0.0231      0.023       0.182       0.232       0.258   
+```
 
 
 ## Contributing
