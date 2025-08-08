@@ -161,13 +161,14 @@ class Command:
                 print(f"variable '{var}' appears only once in the command.")
 
 
-def plot(data : 'list[str]') -> None:
+def plot(data : 'list[tuple[str,str]]') -> None:
     """
     Placeholder for a plotting function.
     """
     x_axis = list(range(len(data)))
+    y_axis = [float(d[1]) for d in data]
     try:
-        plt.plot(x_axis, data)  # type: ignore
+        plt.plot(x_axis, y_axis)  # type: ignore
         plt.show()  # type: ignore
     except Exception as e:
         print(f"ERROR: Error plotting data: {e}")
@@ -176,7 +177,7 @@ def plot(data : 'list[str]') -> None:
 
 
 
-def apply_sequence_commands(args : argparse.Namespace) -> 'list[str]':
+def apply_sequence_commands(args : argparse.Namespace) -> 'list[tuple[str,str]]':
     """
     Apply a sequence of commands to the input file.
     This function is a placeholder for future implementation.
@@ -191,7 +192,7 @@ def apply_sequence_commands(args : argparse.Namespace) -> 'list[str]':
 
     # explores recursively the directories if the -r option is set
     if args.recursive:
-        files = []
+        files : 'list[str]' = []
         for f in args.filename:
             if os.path.isdir(f):
                 # if it's a directory, get all files in it
@@ -216,18 +217,9 @@ def apply_sequence_commands(args : argparse.Namespace) -> 'list[str]':
                         stop_loop = True
                         break
                     current_line = current_line.rstrip('\n')
-                    # apply the corresponding predicates to the line
-                    # print(f"Processing line: {current_line}")
-                    # clean up the variables dictionary
                     for c in c_list:
                         c.variables_dict = {var: None for var in c.variables_dict}
                         for command in c.literals:
-                            # print(f"Processing command: {command}")
-                            # print(c.variables_dict)
-                            # arity 1 predicates
-                            # if command.name in ["print", "line"]:
-                            #     fn = getattr(f"{command.name}", f"{command.name}")
-                            #     res = fn(line, command.args[0], c.variables_dict)
                             res = False
                             if command.name == "line":
                                 res = line(current_line, command.args[0], c.variables_dict)
@@ -280,11 +272,11 @@ def loop_process(args : 'argparse.Namespace'):
     """
     Main loop.
     """
-    start_time : float = time.time()
-    aggregate_lines : 'list[str]' = apply_sequence_commands(args)
-    end_time : float = time.time()
-    elapsed_time_file_analysis : float = end_time - start_time
-    
+    start_time = time.time()
+    aggregate_lines = apply_sequence_commands(args)
+    end_time = time.time()
+    elapsed_time_file_analysis = end_time - start_time
+
     # check aggregation function
     if args.aggregate:
         res = apply_aggregation_function(aggregate_lines, args)
