@@ -152,10 +152,11 @@ def print_line(l : str, instantiations : 'dict[str,str|None]', with_newline : bo
     """
     if is_variable(l):
         if instantiations[l] is not None:
-            if not uncolored_output:
-                print(f"{bcolors.PURPLE}{filename}:{bcolors.ENDC}", end='')
-            else:
-                print(f"{filename}:", end='')
+            if filename is not None:
+                if not uncolored_output:
+                    print(f"{bcolors.PURPLE}{filename}:{bcolors.ENDC}", end='')
+                else:
+                    print(f"{filename}:", end='')
             print(f"{instantiations[l]}", end="\n" if with_newline else "")
     else:
         l = get_constant(l)
