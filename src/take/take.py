@@ -222,10 +222,7 @@ def apply_sequence_commands(args : argparse.Namespace) -> 'list[tuple[str,str]]'
                             elif command.name == "print" or command.name == "println":
                                 processed = True
                                 if not args.suppress_output:
-                                    if args.with_filename:
-                                        file_name = filename
-                                    else:
-                                        file_name = None
+                                    file_name = filename if args.with_filename else None
                                     res = print_line(command.args[0], c.variables_dict, with_newline=command.name == "println", filename=file_name, uncolored_output=args.uncolored, max_columns=args.max_columns)
                                 with io.StringIO() as buf, redirect_stdout(buf):
                                     print_line(command.args[0], c.variables_dict, with_newline=command.name == "println") # do not limit the length here
