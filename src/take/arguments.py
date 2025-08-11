@@ -45,7 +45,7 @@ Examples:
     parser = argparse.ArgumentParser(description="Process a command line with logic predicates", 
                                      epilog=epilog,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("-f", "--filename", required=True, nargs="+", help="Filename to process")
+    parser.add_argument("-f", "--filename", required=True, nargs="+", help="Filenames to process")
     parser.add_argument("-c", "--command", required=True, type=str, action="append", help="Command to process")
     parser.add_argument("-r", "--recursive", action="store_true", help="Process directories recursively")
     parser.add_argument("-so", "--suppress-output", action="store_true", help="Suppress output, only show the result of the aggregation")
@@ -55,7 +55,8 @@ Examples:
     parser.add_argument("--uncolored", action="store_true", help="Disable colored output")
     parser.add_argument("--stats", action="store_true", help="Show statistics about the processed files")
     parser.add_argument("--debug", action="store_true", help="Show debug information")
-    parser.add_argument("--max-columns", type=int, default=0, help="Maximum number of columns to process (0 for no limit)")
+    parser.add_argument("--max-columns", type=int, default=0, help="Maximum text length (0 for no limit)")
+    parser.add_argument("-ks", "--keep-separated", action="store_true", help="Keep the file data separated during aggregation and plotting")
     parser.add_argument("-a", "--aggregate", action="append", choices=[
             "count",
             "sum",

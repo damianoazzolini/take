@@ -2,7 +2,8 @@
 
 The goal of this tool is to filter files lines with a logic-like language.
 That is, there are some built in predicates that applies operations on lines.
-Then, the results can also be aggregated.
+Then, the results can also be **aggregated** and **plotted**.
+It combines features of different well known tools like `grep`, `head`, `tail`, etc, and extend them.
 
 Each predicate takes as input at least one variable/constant with a string (the considered line) and unifies a variable with the result of the operation or succeeds/fails.
 
@@ -165,6 +166,8 @@ If you want only the result of the aggregation and suppress the other output, yo
 
 You can specify multiple aggregates by repeating the flag.
 
+You can aggregate data but keeping them separated by file, using the flag `-ks`.
+
 ## Few Examples
 
 Assume the file is called `f.txt`.
@@ -172,6 +175,45 @@ Assume the file is called `f.txt`.
 Count the empty lines from a file: `take -f f.txt -c "line(L), length(L,N), lt(N,1), println(L)" -a count -so`
 
 Assuming you have a file where the line contains results separated by spaces and you want to pick the second element of each line and sum all: `take -f f.txt -c "line(L), split_select(L,space,1,L1), println(L1)" -a sum -so`
+
+## Available Options
+These are the available options.
+This list may be not updated, so you should use `take --help`.
+
+```
+options:
+  -h, --help            show this help message and exit
+  -f FILENAME [FILENAME ...], --filename FILENAME [FILENAME ...]
+                        Filename(s) to process
+  -c COMMAND, --command COMMAND
+                        Command to process
+  -r, --recursive       Process directories recursively
+  -so, --suppress-output
+                        Suppress output, only show the result of the aggregation
+  -p, --plot            Plot the results
+  -m MAX_COUNT, --max-count MAX_COUNT
+                        Maximum number of lines to process overall (0 for no limit)
+  -H, --with-filename   Print the filename in the output lines
+  --uncolored           Disable colored output
+  --stats               Show statistics about the processed files
+  --debug               Show debug information
+  --max-columns MAX_COLUMNS
+                        Maximum text length (0 for no limit)
+  -ks, --keep-separated
+                        Keep the file data separated during aggregation and plotting
+  -a {count,sum,product,average,mean,stddev,variance,median,min,max,range,summary,concat,unique,first,last,sort_ascending,sort_descending,word_count}, --aggregate {count,sum,product,average,mean,stddev,variance,median,min,max,range,summary,concat,unique,first,last,sort_ascending,sort_descending,word_count}
+                        Aggregation function to apply to the results
+```
+
+<!-- ## Comparison with Other Commands
+The following list shows some well-known commands and their counterparts using `take`.
+
+
+<!-- |description | grep | take | -->
+<!-- |------------|------|------| -->
+- Scan all the files with extension `.txt`, search for pos, print line numbers and at most 5 matches
+    - `grep "pos" *.txt -m 5 -n`
+    -  -->
 
 ## Benchmarking
 We run a small experimental evaluation to benchmark the tool.
