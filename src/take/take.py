@@ -157,20 +157,28 @@ class Command:
                 print(f"{get_warning_prefix(not self.colored_output)} variable '{var}' appears only once in the command.")
 
 
-def plot(data : 'list[tuple[str,str]]', uncolored : bool) -> None:
+def plot(data : 'list[tuple[str,str]]', uncolored : bool, keep_separated : bool) -> None:
     """
     Placeholder for a plotting function.
     """
-    x_axis = list(range(len(data)))
-    try:
-        y_axis = [float(d[1]) for d in data]
-        plt.plot(x_axis, y_axis)  # type: ignore
-        plt.show()  # type: ignore
-    except Exception as e:
-        print(f"{get_error_prefix(uncolored)} Error plotting data: {e}")
-        # Handle the error, e.g., log it or print a message
-        # For now, just print the error
-
+    if not keep_separated:
+        x_axis = list(range(len(data)))
+        try:
+            y_axis = [float(d[1]) for d in data]
+            plt.plot(x_axis, y_axis)  # type: ignore
+        except Exception as e:
+            print(f"{get_error_prefix(uncolored)} Error plotting data: {e}")
+    else:
+        filenames = set(line[0] for line in data)
+        for filename in filenames:
+            y_axis = [float(line[1]) for line in data if line[0] == filename]
+            x_axis = list(range(len(y_axis)))
+            try:
+                plt.plot(x_axis, y_axis, label=filename)  # type: ignore
+            except Exception as e:
+                print(f"{get_error_prefix(uncolored)} Error plotting data for {filename}: {e}")
+    
+    plt.show()  # type: ignore
 
 
 def apply_sequence_commands(args : argparse.Namespace) -> 'list[tuple[str,str]]':
@@ -279,7 +287,7 @@ def loop_process(args : 'argparse.Namespace'):
 
     if args.plot:
         if len(res) > 0:
-            plot(res, args.uncolored)
+            plot(res, args.uncolored, args.keep_separated)
         else:
             if args.uncolored:
                 print("[WARNING]:", end=' ')

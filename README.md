@@ -205,15 +205,20 @@ options:
                         Aggregation function to apply to the results
 ```
 
-<!-- ## Comparison with Other Commands
+## Comparison with Other Commands
 The following list shows some well-known commands and their counterparts using `take`.
 
 
 <!-- |description | grep | take | -->
 <!-- |------------|------|------| -->
-<!-- - Scan all the files with extension `.txt`, search for pos, print line numbers and at most 5 matches
+Scan all the files with extension `.txt`, search for pos, print line numbers and at most 5 matches per file
     - `grep "pos" *.txt -m 5 -n`
-    -  --> -->
+    -  `take -f *.txt -c "line(L), contains(L,'pos'), line_number(L,N), print(N), print(':'), println(L)" -m 5 -H -ks`
+
+Print the first 10 lines of a file called `filename.txt`
+    - `head -n 10 filename.txt`
+    - `take -f f.txt -c "line(L), line_number(L,I), leq(I,10), println(L)"` or `take -f f.txt -c "line(L), println(L)" -m 10`
+
 
 ## Benchmarking
 We run a small experimental evaluation to benchmark the tool.
