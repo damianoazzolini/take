@@ -77,7 +77,7 @@ def get_temporary_file(content: str) -> str:
 
 def get_result(
         command : 'list[str]',
-        filename: str,
+        filenames: 'list[str]',
         aggregate : 'list[str]' = [],
         max_count: int = 0,
         suppress_output: bool = False,
@@ -88,7 +88,7 @@ def get_result(
     Helper function to get the result of a command.
     """
     args = argparse.Namespace(
-        filename=[filename],
+        filename=filenames,
         command=command,
         suppress_output=suppress_output,
         aggregate=aggregate,
@@ -226,7 +226,7 @@ def get_result(
 ])
 def test_integration(command : 'list[str]', expected: str, aggregate : 'list[str]', strip_results: bool, max_count: int, keep_separated : bool, suppress_output : bool):
     filename = get_temporary_file(CONTENT)
-    res = get_result(command, filename, aggregate=aggregate, max_count=max_count, keep_separated=keep_separated, suppress_output=suppress_output)
+    res = get_result(command, [filename], aggregate=aggregate, max_count=max_count, keep_separated=keep_separated, suppress_output=suppress_output)
     os.unlink(filename)
     if strip_results:
         res = res.strip().replace("\n", "").replace(" ", "")
@@ -238,17 +238,28 @@ def test_equality_keep_separated():
     command = ["line(L), startswith(L,'AUCPR'), split_select(L,':',1,L1), strip(L1,L2), println(L2)"]
     aggregates : 'list[str]' = ["count", "sum", "product", "average", "mean", "stddev", "variance", "median", "min", "max", "range", "summary", "concat", "unique", "first", "last", "sort_ascending", "sort_descending", "word_count"]
     filename = get_temporary_file(CONTENT)
-    res_separated = get_result(command, filename, aggregates, keep_separated=True, suppress_output=True)
-    res_not_separated = get_result(command, filename, aggregates, keep_separated=False, suppress_output=True)
+    res_separated = get_result(command, [filename], aggregates, keep_separated=True, suppress_output=True)
+    res_not_separated = get_result(command, [filename], aggregates, keep_separated=False, suppress_output=True)
     os.unlink(filename)
     assert res_separated.count(filename) == len(aggregates)
     assert res_separated.replace(f" {filename}", "") == res_not_separated
 
 
+def test_keep_separated_print_max_number():
+    command = ["line(L), startswith(L,'AUCPR'), split_select(L,':',1,L1), strip(L1,L2), println(L2)"]
+    filename = get_temporary_file(CONTENT)
+    filename_bis = get_temporary_file(CONTENT)
+    res = get_result(command, [filename,filename_bis], max_count=4, keep_separated=False)
+    res_separated = get_result(command, [filename,filename_bis], max_count=4, keep_separated=True)
+    os.unlink(filename)
+    os.unlink(filename_bis)
+    assert len(res.splitlines()) == 4
+    assert len(res_separated.splitlines()) == 8
+
 def test_integration_sw_sps_st_max_count_filename():
     command = ["line(L), startswith(L,size), split_select(L,space,1,S), println(S)"]
     filename = get_temporary_file(CONTENT)
-    res = get_result(command, filename, max_count=4, with_filename=True)
+    res = get_result(command, [filename], max_count=4, with_filename=True)
     os.unlink(filename)
     assert res.strip().replace("\n","").replace(" ","") == f"{filename}:7{filename}:8{filename}:9{filename}:10"
 
@@ -295,7 +306,7 @@ def test_random_command(seed : int, aggregator: bool):
     else:
         aggregate = []
     try:
-        _ = get_result([command], filename, aggregate=aggregate)
+        _ = get_result([command], [filename], aggregate=aggregate)
         # assert True
     except Exception as e:
         assert False, command + " " + str(aggregate) + "\n" + str(e)

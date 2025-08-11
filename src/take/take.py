@@ -204,16 +204,21 @@ def apply_sequence_commands(args : argparse.Namespace) -> 'list[tuple[str,str]]'
         if stop_loop:
             break
         try:
+            if args.keep_separated:
+                count_processed = 0 # keep separated: process at most args.max_count lines per file
+                processed = False
             with open(filename, "r") as fp:
                 for idx, current_line in enumerate(fp):
                     if processed:
                         count_processed += 1
                     processed = False
                     if count_processed >= args.max_count and args.max_count > 0:
-                        stop_loop = True
+                        if not args.keep_separated:
+                            stop_loop = True
                         break
                     current_line = current_line.rstrip('\n')
                     for c in c_list:
+                        already_printed_filename = False
                         c.variables_dict = {var: None for var in c.variables_dict}
                         for command in c.literals:
                             res = False
@@ -223,7 +228,8 @@ def apply_sequence_commands(args : argparse.Namespace) -> 'list[tuple[str,str]]'
                                 processed = True
                                 if not args.suppress_output:
                                     file_name = filename if args.with_filename else None
-                                    res = print_line(command.args[0], c.variables_dict, with_newline=command.name == "println", filename=file_name, uncolored_output=args.uncolored, max_columns=args.max_columns)
+                                    res = print_line(command.args[0], c.variables_dict, with_newline=command.name == "println", filename=file_name, uncolored_output=args.uncolored, max_columns=args.max_columns, already_printed_filename=already_printed_filename)
+                                    already_printed_filename = True
                                 with io.StringIO() as buf, redirect_stdout(buf):
                                     print_line(command.args[0], c.variables_dict, with_newline=command.name == "println") # do not limit the length here
                                     gv : str = buf.getvalue()

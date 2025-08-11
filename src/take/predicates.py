@@ -144,17 +144,25 @@ def line(current_line : str, l : str, instantiations : 'dict[str,str|None]') -> 
 
     return current_line == l
 
-def print_line(l : str, instantiations : 'dict[str,str|None]', with_newline : bool = False, filename : str|None = None, uncolored_output : bool = False, max_columns : int = 0) -> bool:
+def print_line(
+        line : str,
+        instantiations : 'dict[str,str|None]',
+        with_newline : bool = False,
+        filename : str|None = None,
+        uncolored_output : bool = False,
+        max_columns : int = 0,
+        already_printed_filename : bool = False
+    ) -> bool:
     """
     Print the value of the variable l from the instantiations dictionary.
     If l is not a variable, print it directly.
     Returns True if the variable exists and is printed, False otherwise.
     """
     stop = False
-    if is_variable(l):
+    if is_variable(line):
         max_len = max_columns
-        if instantiations[l] is not None:
-            if filename is not None:
+        if instantiations[line] is not None:
+            if filename is not None and not already_printed_filename:
                 if max_columns > 0 and len(filename) > max_columns-1:
                     stop = True
                     filename = filename[:max_columns-1]
@@ -167,16 +175,16 @@ def print_line(l : str, instantiations : 'dict[str,str|None]', with_newline : bo
                     return True
                 max_len -= len(filename) + 1
             if max_columns > 0:
-                to_print = instantiations[l][:max_len]
+                to_print = instantiations[line][:max_len]
             else:
-                to_print = instantiations[l]
+                to_print = instantiations[line]
             print(f"{to_print}", end="\n" if with_newline else "")
     else:
-        l = get_constant(l)
+        line = get_constant(line)
         if max_columns > 0:
-            print(l[:max_columns], end="\n" if with_newline else "")
+            print(line[:max_columns], end="\n" if with_newline else "")
         else:
-            print(l, end="\n" if with_newline else "")
+            print(line, end="\n" if with_newline else "")
     return True
 
 
