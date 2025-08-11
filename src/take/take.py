@@ -276,10 +276,8 @@ def loop_process(args : 'argparse.Namespace'):
     end_time = time.time()
     elapsed_time_file_analysis = end_time - start_time
 
-    # check aggregation function
     if args.aggregate:
         apply_aggregation_function(data_lines, args)
-
 
     if args.stats:
         print(f"Elapsed time for file analysis: {elapsed_time_file_analysis:.2f} s.")
@@ -301,6 +299,3 @@ def take_main():
     """
     args = parse_arguments()
     loop_process(args)
-    
-    # print(c.literals)
-

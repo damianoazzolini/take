@@ -19,11 +19,12 @@ def _compute_sum_prod_count(sum_or_count_or_prod : str, aggregate_lines: 'list[t
             else:
                 val = 1 if sum_or_count_or_prod == "prod" else 0
         else:
-            val = float(line[1])
-        if sum_or_count_or_prod == "sum":
+            if sum_or_count_or_prod == "count":
+                val = 1
+            else:
+                val = float(line[1])
+        if sum_or_count_or_prod in ["sum","count"]:
             result += val
-        elif sum_or_count_or_prod == "count":
-            result += 1
         elif sum_or_count_or_prod == "prod":
             result *= val
             if result == 0:
