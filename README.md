@@ -211,9 +211,9 @@ The following list shows some well-known commands and their counterparts using `
 
 <!-- |description | grep | take | -->
 <!-- |------------|------|------| -->
-- Scan all the files with extension `.txt`, search for pos, print line numbers and at most 5 matches
+<!-- - Scan all the files with extension `.txt`, search for pos, print line numbers and at most 5 matches
     - `grep "pos" *.txt -m 5 -n`
-    -  -->
+    -  --> -->
 
 ## Benchmarking
 We run a small experimental evaluation to benchmark the tool.
