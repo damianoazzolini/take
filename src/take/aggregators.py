@@ -183,7 +183,8 @@ def apply_aggregation_function(aggregate_lines : 'list[tuple[str,str]]', args : 
                         res =  globals()[f"_compute_{aggregate}"](aggregate_lines, filename)
                     else:
                         res = "-"
-                    print(f"{get_aggregate_prefix(aggregate + ' ' + filename, args.uncolored)} {res}")
+                    if res != "-" or res == "-" and not args.ignore_no_matches:
+                        print(f"{get_aggregate_prefix(aggregate + ' ' + filename, args.uncolored)} {res}")
             else:
                 res =  globals()[f"_compute_{aggregate}"](aggregate_lines, None)
                 if args.with_filename and aggregate in ["min", "max"]:
@@ -191,6 +192,7 @@ def apply_aggregation_function(aggregate_lines : 'list[tuple[str,str]]', args : 
                     idxs = [line[0] for line in aggregate_lines if float(line[1]) == res]
                     s_idxs = ', '.join(idxs)
                     prefix = get_aggregate_prefix(aggregate + f" {s_idxs}", args.uncolored)
-                print(f"{prefix} {res}")
+                if res != "-" or res == "-" and not args.ignore_no_matches:
+                    print(f"{prefix} {res}")
         except Exception as e:
             print(f"\n{get_error_prefix(args.uncolored)} Error applying aggregation function '{aggregate}': {e}")
