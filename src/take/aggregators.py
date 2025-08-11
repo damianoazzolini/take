@@ -162,17 +162,16 @@ def _compute_sort_ascending(aggregate_lines: 'list[tuple[str,str]]', filename : 
 def _compute_sort_descending(aggregate_lines: 'list[tuple[str,str]]', filename : str | None) -> 'str':
     return _compute_sort_ascending_descending(False, aggregate_lines, filename)
 
-def apply_aggregation_function(aggregate_lines : 'list[tuple[str,str]]', args : argparse.Namespace) -> 'list[str] | list[float]':
+def apply_aggregation_function(aggregate_lines : 'list[tuple[str,str]]', args : argparse.Namespace) -> None:
     """
     Apply the aggregate function.
     """
     # check aggregation function
-    obtained_data : 'list[str] | list[float]' = []
     for aggregate in args.aggregate:
         prefix = get_aggregate_prefix(aggregate, args.uncolored)
         if len(aggregate_lines) == 0:
             print(f"{get_warning_prefix(args.uncolored)} No lines to aggregate")
-            return []
+            return
         try:
             # TODO: if keep separated, loop through all the files: not super efficient
             # because I loop multiple times, but compact
@@ -194,5 +193,3 @@ def apply_aggregation_function(aggregate_lines : 'list[tuple[str,str]]', args : 
                 print(f"{prefix} {res}")
         except Exception as e:
             print(f"\n{get_error_prefix(args.uncolored)} Error applying aggregation function '{aggregate}': {e}")
-
-    return obtained_data

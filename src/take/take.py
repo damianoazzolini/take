@@ -163,11 +163,12 @@ def plot(data : 'list[tuple[str,str]]', uncolored : bool, keep_separated : bool)
     """
     if not keep_separated:
         x_axis = list(range(len(data)))
+        y_axis = [float(d[1]) for d in data]
         try:
-            y_axis = [float(d[1]) for d in data]
             plt.plot(x_axis, y_axis)  # type: ignore
         except Exception as e:
             print(f"{get_error_prefix(uncolored)} Error plotting data: {e}")
+        # plt.legend(["data"])
     else:
         filenames = set(line[0] for line in data)
         for filename in filenames:
@@ -177,14 +178,13 @@ def plot(data : 'list[tuple[str,str]]', uncolored : bool, keep_separated : bool)
                 plt.plot(x_axis, y_axis, label=filename)  # type: ignore
             except Exception as e:
                 print(f"{get_error_prefix(uncolored)} Error plotting data for {filename}: {e}")
-    
+        plt.legend()  # type: ignore
     plt.show()  # type: ignore
 
 
 def apply_sequence_commands(args : argparse.Namespace) -> 'list[tuple[str,str]]':
     """
     Apply a sequence of commands to the input file.
-    This function is a placeholder for future implementation.
     """
     aggregate_lines : 'list[tuple[str,str]]' = []
     c_list : 'list[Command]' = [Command(cmd, colored_output=not args.uncolored) for cmd in args.command]
@@ -272,22 +272,21 @@ def loop_process(args : 'argparse.Namespace'):
     Main loop.
     """
     start_time = time.time()
-    aggregate_lines = apply_sequence_commands(args)
+    data_lines = apply_sequence_commands(args)
     end_time = time.time()
     elapsed_time_file_analysis = end_time - start_time
 
     # check aggregation function
     if args.aggregate:
-        res = apply_aggregation_function(aggregate_lines, args)
-    else:
-        res = aggregate_lines
+        apply_aggregation_function(data_lines, args)
+
 
     if args.stats:
         print(f"Elapsed time for file analysis: {elapsed_time_file_analysis:.2f} s.")
 
     if args.plot:
-        if len(res) > 0:
-            plot(res, args.uncolored, args.keep_separated)
+        if len(data_lines) > 0:
+            plot(data_lines, args.uncolored, args.keep_separated)
         else:
             if args.uncolored:
                 print("[WARNING]:", end=' ')
