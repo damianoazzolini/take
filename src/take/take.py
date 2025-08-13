@@ -208,6 +208,13 @@ def apply_sequence_commands(args : argparse.Namespace) -> 'list[tuple[str,str]]'
                 files.append(f)
         args.filename = files
 
+    # remove files ignored    
+    if args.ignore_file:
+        for ignore in args.ignore_file:
+            if ignore in args.filename:
+                args.filename.remove(ignore)
+
+
     for filename in args.filename:
         if stop_loop:
             break

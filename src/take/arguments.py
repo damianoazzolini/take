@@ -58,6 +58,7 @@ Examples:
     parser.add_argument("--max-columns", type=int, default=0, help="Maximum text length (0 for no limit)")
     parser.add_argument("-ks", "--keep-separated", action="store_true", help="Keep the file data separated during aggregation and plotting")
     parser.add_argument("--ignore-no-matches", "-ign", action="store_true", help="Ignore aggregation functions returning no lines")
+    parser.add_argument("--ignore-file", nargs="+", help="Files to ignore during processing")
     parser.add_argument("-a", "--aggregate", action="append", choices=[
             "count",
             "sum",
